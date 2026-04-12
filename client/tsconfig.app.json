@@ -23,7 +23,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "baseUrl": "postgresql://postgres:[sbp_f4b90ccfb373ced66032bf7c0dde6e7ac488ec51]@db.xkksuccgvrpddksovyea.supabase.co:5432/postgres",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
