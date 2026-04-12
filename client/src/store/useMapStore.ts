@@ -38,6 +38,7 @@ type Action =
   | { type: 'LOAD_EVENTS';         events: SportEvent[] }
   | { type: 'SET_LOADING';         value: boolean }
   | { type: 'SET_ERROR';           error: string | null }
+  | { type: 'SET_NETWORK_ERROR';   error: string }
 
 // ─── Helpers ──────────────────────────────────────────────
 function filterSpots(spots: Spot[], query: string, sportFilters: SportId[]): Spot[] {
@@ -94,6 +95,9 @@ function reducer(state: MapState, action: Action): MapState {
 
     case 'SET_ERROR':
       return { ...state, isLoading: false, loadError: action.error }
+
+    case 'SET_NETWORK_ERROR':
+      return { ...state, loadError: action.error }
 
     case 'SELECT_SPOT':
       return { ...state, selectedSpot: action.spot }
@@ -158,6 +162,7 @@ export function useMapStore() {
   const loadEvents       = useCallback((events: SportEvent[])   => dispatch({ type: 'LOAD_EVENTS',         events }), [])
   const setStoreLoading  = useCallback((value: boolean)         => dispatch({ type: 'SET_LOADING',          value }),  [])
   const setStoreError    = useCallback((error: string | null)   => dispatch({ type: 'SET_ERROR',            error }),  [])
+  const setNetworkError  = useCallback((error: string)          => dispatch({ type: 'SET_NETWORK_ERROR',    error }),  [])
   const selectSpot       = useCallback((spot: Spot | null)      => dispatch({ type: 'SELECT_SPOT',          spot }),   [])
   const setSearch        = useCallback((query: string)          => dispatch({ type: 'SET_SEARCH',           query }),  [])
   const toggleSportFilter= useCallback((sport: SportId)         => dispatch({ type: 'TOGGLE_SPORT_FILTER',  sport }),  [])
@@ -177,6 +182,7 @@ export function useMapStore() {
     loadEvents,
     setStoreLoading,
     setStoreError,
+    setNetworkError,
     selectSpot,
     setSearch,
     toggleSportFilter,

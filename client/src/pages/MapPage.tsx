@@ -15,8 +15,11 @@ import VenueModal from '@/components/Venue/VenueModal'
 import ProfileModal from '@/components/Profile/ProfileModal'
 import AuthPromptModal from '@/components/Profile/AuthPromptModal'
 import MobileNav from '@/components/ui/MobileNav'
+import BottomSheet from '@/components/ui/BottomSheet'
+import FilterFAB from '@/components/ui/FilterFAB'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Spot, LatLng } from '@/types'
+import type { SnapPoint } from '@/components/ui/BottomSheet'
 import { SPOTS as MOCK_SPOTS } from '@/data/mock'
 
 const FIRST_TOAST_DELAY  = 8000
@@ -37,7 +40,8 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   const [profileOpen, setProfileOpen]   = useState(false)
   const [authPromptOpen, setAuthPromptOpen] = useState(false)
   const [cityName, setCityName]         = useState<string | null>(null)
-  const [searchCoords, setSearchCoords] = useState<LatLng | null>(null)
+  const [searchCoords, setSearchCoords]       = useState<LatLng | null>(null)
+  const [bottomSheetSnap, setBottomSheetSnap] = useState<SnapPoint>('collapsed')
 
   // mapCenter = centre + rayon visibles (piloté par GPS puis par moveend de MapView)
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; radius: number } | null>(null)
@@ -111,6 +115,7 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
         clearTimeout(timeout)
         // Abort intentionnel (cleanup re-run, démontage) → on ne charge pas les mocks
         if (controller.signal.aborted) return
+        store.setNetworkError('Connexion dégradée — données hors ligne')
         console.warn('API indisponible, utilisation des données mock:', err instanceof Error ? err.message : String(err))
         const mockInZone = MOCK_SPOTS.filter(s => {
           const dist = Math.sqrt(
@@ -212,7 +217,7 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   // Données visibles = spots réels Supabase uniquement (pas de mock Paris pour les non-parisiens)
   const visibleSpots = store.filteredSpots
 
-  const popupBottom = isMobile ? 68 : 12
+  const popupBottom = isMobile ? 76 : 12
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.bg, overflow: 'hidden', position: 'relative' }}>
@@ -360,6 +365,36 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
               }}
             />
           )}
+
+          {/* Bottom Sheet mobile (filtres + liste) */}
+          {isMobile && (
+            <BottomSheet
+              sportFilters={store.sportFilters}
+              frozenSport={store.frozenSport}
+              onToggleSport={store.toggleSportFilter}
+              onClearFilters={store.clearSportFilters}
+              onClearFrozen={store.clearFrozenSport}
+              activeTab={store.activeTab}
+              onSetTab={store.setTab}
+              spots={store.filteredSpots}
+              events={store.events}
+              workouts={store.workouts}
+              selectedSpot={store.selectedSpot}
+              onSelectSpot={spot => { store.selectSpot(spot); setVenueSpot(spot) }}
+              onViewVenue={spot => setVenueSpot(spot)}
+              snapPoint={bottomSheetSnap}
+              onSnapChange={setBottomSheetSnap}
+            />
+          )}
+
+          {/* FAB Filtres mobile */}
+          {isMobile && (
+            <FilterFAB
+              filterCount={store.sportFilters.length}
+              bottomOffset={56 + 20}
+              onClick={() => setBottomSheetSnap(s => s === 'collapsed' ? 'half' : 'collapsed')}
+            />
+          )}
         </div>
       </div>
 
@@ -370,7 +405,10 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
           onSetTab={tab => {
             store.setTab(tab)
             if (tab === 'lieu' && store.selectedSpot) setVenueSpot(store.selectedSpot)
-            if (tab !== 'lieu') setVenueSpot(null)
+            if (tab !== 'lieu') {
+              setVenueSpot(null)
+              setBottomSheetSnap('half')
+            }
           }}
           hasSelectedSpot={!!store.selectedSpot}
         />

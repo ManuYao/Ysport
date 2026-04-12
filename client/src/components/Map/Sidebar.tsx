@@ -30,7 +30,7 @@ const TABS: { id: SidebarTab; label: string; icon: string }[] = [
 ]
 
 // Noms courts pour les chips de filtres
-const SPORT_SHORT: Record<string, string> = {
+export const SPORT_SHORT: Record<string, string> = {
   street:      'Street',
   skate:       'Skate',
   athletisme:  'Athlé',
@@ -43,11 +43,11 @@ const SPORT_SHORT: Record<string, string> = {
 }
 
 // ─── Helpers ──────────────────────────────────────────────
-function sportEmoji(id: string): string {
+export function sportEmoji(id: string): string {
   return sports.find(s => s.id === id)?.icon ?? '🏅'
 }
 
-function formatDist(km: number): string {
+export function formatDist(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`
 }
 
@@ -208,7 +208,7 @@ export default function Sidebar({
 }
 
 // ─── Sport Chip ─────────────────────────────────────────
-function SportChip({ icon, label, title, active, frozen, onClick }: {
+export function SportChip({ icon, label, title, active, frozen, onClick }: {
   icon: string; label: string; title?: string
   active: boolean; frozen: boolean; onClick: () => void
 }) {
@@ -264,7 +264,7 @@ function SportChip({ icon, label, title, active, frozen, onClick }: {
 }
 
 // ─── Spot Card ────────────────────────────────────────────
-function SpotCard({ spot, selected, onClick, onViewVenue }: {
+export function SpotCard({ spot, selected, onClick, onViewVenue }: {
   spot: Spot; selected: boolean; onClick: () => void; onViewVenue: () => void
 }) {
   const mainSport = spot.sports[0]
@@ -343,7 +343,7 @@ function SpotCard({ spot, selected, onClick, onViewVenue }: {
 }
 
 // ─── Event Card ───────────────────────────────────────────
-function EventCard({ event }: { event: SportEvent }) {
+export function EventCard({ event }: { event: SportEvent }) {
   return (
     <div style={{ padding: '10px 12px', borderBottom: `0.5px solid ${colors.border}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -393,7 +393,7 @@ function EventCard({ event }: { event: SportEvent }) {
 }
 
 // ─── Workout Card ─────────────────────────────────────────
-function WorkoutCard({ workout }: { workout: ActiveWorkout }) {
+export function WorkoutCard({ workout }: { workout: ActiveWorkout }) {
   const pct = Math.min(workout.elapsedMin / workout.durationMin, 1)
 
   return (

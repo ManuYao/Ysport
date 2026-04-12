@@ -84,15 +84,29 @@ async function getAuthHeaders(): Promise<HeadersInit> {
   }
 }
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function apiFetch<T>(
+  path: string,
+  init: RequestInit & { signal?: AbortSignal } = {},
+  timeoutMs = 8000,
+): Promise<T> {
+  const internal = new AbortController()
+  const timer = setTimeout(() => internal.abort(), timeoutMs)
+  if (init.signal) {
+    init.signal.addEventListener('abort', () => internal.abort(), { once: true })
+  }
   const authHeaders = await getAuthHeaders()
-  const res = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: { ...authHeaders, ...(init?.headers ?? {}) },
-  })
-  const json = await res.json()
-  if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`)
-  return json as T
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      ...init,
+      headers: { ...authHeaders, ...(init?.headers ?? {}) },
+      signal: internal.signal,
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`)
+    return json as T
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 // ─── Shapes retournées par l'API ──────────────────────────

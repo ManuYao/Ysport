@@ -201,9 +201,11 @@ export default function MapView({
 
       // ── Source spots ─────────────────────────────────────
       m.addSource('spots', {
-        type:    'geojson',
-        data:    { type: 'FeatureCollection', features: [] },
-        cluster: false,
+        type:         'geojson',
+        data:         { type: 'FeatureCollection', features: [] },
+        cluster:      true,
+        clusterMaxZoom: 14,
+        clusterRadius:  50,
       })
 
       // Cluster — cercle
@@ -245,11 +247,10 @@ export default function MapView({
       // Point individuel (zoom lointain, cercles)
       // ── RÉGLER LE ZOOM DE BASCULE CERCLE→BULLE ICI ───────
       m.addLayer({
-        id:      'unclustered-point',
-        type:    'circle',
-        source:  'spots',
-        filter:  ['!', ['has', 'point_count']],
-        maxzoom: 13,
+        id:     'unclustered-point',
+        type:   'circle',
+        source: 'spots',
+        filter: ['!', ['has', 'point_count']],
         paint:   {
           'circle-color':        GOLD,
           'circle-radius': [
@@ -310,6 +311,7 @@ export default function MapView({
         setMapZoom(z)
         // Bascule globe (intro) ↔ mercator (navigation spots) selon le zoom
         m.setProjection(z >= MERCATOR_ZOOM_THRESHOLD ? ('mercator' as never) : ('globe' as never))
+        emitBounds()
       })
       setMapReady(true)
     })
@@ -437,7 +439,7 @@ export default function MapView({
   useEffect(() => {
     if (!map.current || !mapReady) return
     const m       = map.current
-    const visible = mapZoom >= 12
+    const visible = mapZoom >= 14
     const filtered = sportFilters.length > 0
       ? spots.filter(s => sportFilters.some(f => s.sports.includes(f)))
       : spots
