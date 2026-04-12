@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
+@import "mapbox-gl/dist/mapbox-gl.css";
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #080808;
+  color: #f0f0f0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+}
+
+/* ── Scale UI sur grands écrans ── */
+@media (min-width: 1920px) {
+  #root { zoom: 1.15; }
+}
+@media (min-width: 2560px) {
+  #root { zoom: 1.3; }
+}
+
+/* ── Scrollbar sombre ── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a transparent;
+}
+
+/* ── Animations globales YSport ── */
+@keyframes ysport-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+@keyframes ysport-pip {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.5); }
+  50%      { box-shadow: 0 0 0 4px rgba(201, 168, 76, 0); }
+}
+
+@keyframes ysport-live {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+
+@keyframes ysport-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ysport-halo-pulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50%      { transform: translateX(-50%) scale(1.08); opacity: 0.8; }
+}
+
+@keyframes ysport-pulsate {
+  0%   { width: 10px; height: 10px; opacity: 0.9; }
+  100% { width: 72px; height: 72px; opacity: 0; }
+}
+
+@keyframes ysport-data-float {
+  0%, 100% { transform: translate(-50%, -100%); }
+  50%      { transform: translate(-50%, calc(-100% - 4px)); }
+}
+
+/* ── Pulse marqueur position utilisateur (Mapbox) ── */
+@keyframes ysport-user-pulse {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  70%  { transform: scale(2.4); opacity: 0;   }
+  100% { transform: scale(2.4); opacity: 0;   }
+}
+
+.ysport-user-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin-top: -14px;
+  margin-left: -14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(201, 168, 76, 0.6);
+  animation: ysport-user-pulse 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+/* ── Sidebar spot cards ── */
+.spot-card {
+  background: #181818;
+  border: 0.5px solid #202020;
+  border-radius: 10px;
+  padding: 13px 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.spot-card:hover {
+  border-color: rgba(201, 168, 76, 0.22);
+}
+.spot-card.selected {
+  border-color: #C9A84C;
+  background: #191813;
+}
+
+/* ── Voir + button — glassmorphism orange ── */
+.voir-plus-btn {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  margin-top: 4px;
+  background: rgba(14, 14, 14, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.04) inset,
+    0 4px 16px rgba(0, 0, 0, 0.45),
+    0 0 12px rgba(201, 168, 76, 0.06);
+  color: #666;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.3s ease;
+}
+.voir-plus-btn:hover {
+  border-color: rgba(232, 201, 106, 0.45);
+  color: #E8C96A;
+  background: rgba(201, 168, 76, 0.08);
+  box-shadow:
+    0 0 0 0.5px rgba(232,201,106,0.12) inset,
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(201, 168, 76, 0.15);
+  transform: translateY(-1px);
+}
+.voir-plus-btn:active {
+  transform: translateY(0);
+}
+.voir-plus-btn .count {
+  font-weight: 700;
+  color: inherit;
+}
+
+/* Override mapbox-gl canvas cursor */
+.mapboxgl-canvas {
+  cursor: default !important;
+}
+.mapboxgl-marker {
+  cursor: pointer;
+}

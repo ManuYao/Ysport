@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YSport — Fiche Lieu</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --gold: #C9A84C;
+  --gold-dim: #C9A84C18;
+  --gold-border: #C9A84C33;
+  --bg: #0e0e0e;
+  --bg2: #141414;
+  --bg3: #191919;
+  --bg4: #1e1e1e;
+  --border: #222;
+  --border2: #2a2a2a;
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #484848;
+  --green: #5a9e6a;
+  --red: #d05050;
+  --blue: #7b8fff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #080808;
+  min-height: 100vh;
+  display: flex; justify-content: center;
+  padding: 12px;
+}
+
+.shell {
+  width: 100%; max-width: 420px;
+  background: var(--bg);
+  border-radius: 20px; overflow: hidden;
+  border: 0.5px solid var(--border);
+  color: var(--text); font-size: 13px;
+  display: flex; flex-direction: column;
+  min-height: calc(100vh - 24px);
+  position: relative;
+}
+
+/* NAV */
+.nav {
+  height: 50px; background: var(--bg2);
+  border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 10px;
+  flex-shrink: 0; position: sticky; top: 0; z-index: 100;
+}
+.nav-back {
+  width: 28px; height: 28px; border-radius: 7px;
+  border: 0.5px solid var(--border2); background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); transition: all 0.15s;
+}
+.nav-back:hover { border-color: var(--gold-border); color: var(--gold); }
+.nav-title { font-size: 13px; font-weight: 500; color: var(--text2); }
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 800; color: #fff;
+  display: flex; align-items: center; gap: 6px; margin-left: auto;
+}
+.nav-dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; }
+
+/* SCROLL CONTENT */
+.scroll-content {
+  flex: 1; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+
+/* GALERIE */
+.gallery {
+  position: relative; height: 210px;
+  background: var(--bg3); overflow: hidden; flex-shrink: 0;
+}
+.gallery-slides { display: flex; height: 100%; transition: transform 0.38s cubic-bezier(0.4,0,0.2,1); }
+.gallery-slide {
+  min-width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.gallery-slide::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 30%, #0e0e0ecc 100%);
+}
+.slide-bg { position: absolute; inset: 0; }
+
+.gallery-dots {
+  position: absolute; bottom: 10px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 10;
+}
+.gdot { width: 5px; height: 5px; border-radius: 50%; background: #ffffff30; transition: all 0.2s; }
+.gdot.on { background: var(--gold); width: 16px; border-radius: 3px; }
+
+.gallery-arrows {
+  position: absolute; top: 50%; width: 100%;
+  display: flex; justify-content: space-between;
+  padding: 0 10px; transform: translateY(-50%);
+  z-index: 10; pointer-events: none;
+}
+.garrow {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #000000aa; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: all; color: #fff; font-size: 13px;
+}
+
+.gallery-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  background: var(--green); border-radius: 7px;
+  padding: 3px 10px; font-size: 10px; font-weight: 700; color: #fff;
+}
+.gallery-live {
+  position: absolute; top: 12px; right: 12px; z-index: 10;
+  background: #1f1111ee; border: 0.5px solid #d0505055;
+  border-radius: 7px; padding: 3px 9px;
+  font-size: 10px; font-weight: 600; color: var(--red);
+  display: flex; align-items: center; gap: 4px;
+}
+.live-dot { width: 5px; height: 5px; background: var(--red); border-radius: 50%; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.2} }
+
+/* LIEU HERO */
+.lieu-hero { padding: 14px 16px; border-bottom: 0.5px solid #1a1a1a; }
+.lieu-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 800; color: #fff;
+  margin-bottom: 2px; line-height: 1.1;
+}
+.lieu-type { font-size: 11px; color: var(--text3); margin-bottom: 10px; }
+
+.lieu-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.ltag {
+  font-size: 10px; padding: 3px 9px; border-radius: 20px;
+  border: 0.5px solid var(--border2); color: var(--text2); background: var(--bg3);
+}
+
+.rating-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.rating-big {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px; font-weight: 800; color: var(--gold);
+}
+.stars-row { color: var(--gold); font-size: 13px; letter-spacing: -1px; }
+.rating-info { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* GEO STATUS dans fiche */
+.geo-status-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: #0f1f0f; border: 0.5px solid #5a9e6a30;
+  border-radius: 10px; padding: 10px 13px;
+}
+.geo-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; flex-shrink: 0; }
+.geo-text { flex: 1; }
+.geo-title { font-size: 11px; font-weight: 500; color: var(--green); }
+.geo-sub { font-size: 10px; color: #5a9e6a70; margin-top: 1px; }
+.geo-timer {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--green);
+  background: #5a9e6a15; border: 0.5px solid #5a9e6a30;
+  border-radius: 6px; padding: 4px 8px; flex-shrink: 0;
+}
+
+/* STATS */
+.lieu-stats {
+  display: flex;
+  border-bottom: 0.5px solid #1a1a1a;
+  border-top: 0.5px solid #1a1a1a;
+}
+.lstat { flex: 1; padding: 12px 8px; text-align: center; border-right: 0.5px solid #1a1a1a; }
+.lstat:last-child { border-right: none; }
+.lstat-n {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 700; color: var(--gold);
+}
+.lstat-l { font-size: 9px; color: var(--text3); margin-top: 1px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ════════════════════════════
+   BOUTONS ACTIONS — le cœur
+════════════════════════════ */
+.actions-block { padding: 14px 16px; border-bottom: 0.5px solid #1a1a1a; }
+
+/* Bouton principal Google Maps — bien mis en avant */
+.gmaps-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: none; border-radius: 11px;
+  padding: 13px 16px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 12px #00000033;
+}
+.gmaps-btn:hover { background: #f5f5f5; transform: translateY(-1px); }
+.gmaps-btn:active { transform: scale(0.98); }
+
+.gmaps-ico {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 22px;
+  border: 0.5px solid #e0e0e0;
+}
+.gmaps-text { flex: 1; text-align: left; }
+.gmaps-title { font-size: 13px; font-weight: 600; color: #111; }
+.gmaps-sub { font-size: 10px; color: #666; margin-top: 1px; }
+.gmaps-arrow {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #4285F4; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Actions secondaires */
+.secondary-actions { display: flex; gap: 8px; }
+.sec-btn {
+  flex: 1; padding: 9px 8px; border-radius: 9px;
+  font-size: 11px; font-weight: 500; font-family: inherit;
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 5px; transition: all 0.15s;
+  border: 0.5px solid var(--border2); background: var(--bg3);
+  color: var(--text2);
+}
+.sec-btn:hover { border-color: var(--gold-border); color: var(--gold); }
+.sec-btn.gold-btn {
+  background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold);
+}
+.sec-btn.gold-btn:hover { background: var(--gold); color: #111; }
+
+/* TRAJET INFO (apparaît après tap Google Maps) */
+.trajet-preview {
+  background: #12122a; border: 0.5px solid #7b8fff33;
+  border-radius: 10px; padding: 10px 13px;
+  display: none; align-items: center; gap: 10px;
+  margin-top: 10px; animation: fadeIn 0.3s ease;
+}
+.trajet-preview.show { display: flex; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+.trajet-ico { font-size: 18px; flex-shrink: 0; }
+.trajet-text { flex: 1; }
+.trajet-title { font-size: 11px; font-weight: 500; color: #a0a8ff; }
+.trajet-sub { font-size: 10px; color: #7b8fff80; margin-top: 1px; }
+.trajet-close { font-size: 11px; color: #7b8fff60; cursor: pointer; flex-shrink: 0; }
+
+/* AFFLUENCE */
+.affluence-section { padding: 16px 16px 0; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-title { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+.section-sub { font-size: 9px; color: var(--text3); }
+
+.aff-bars { display: flex; gap: 4px; align-items: flex-end; height: 52px; margin-bottom: 6px; }
+.aff-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.aff-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--bg4); position: relative; overflow: hidden; }
+.aff-bar.now { background: var(--gold-dim); border: 0.5px solid var(--gold-border); }
+.aff-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 3px 3px 0 0; }
+.aff-lbl { font-size: 8px; color: var(--text3); }
+.aff-lbl.now { color: var(--gold); font-weight: 600; }
+.aff-legend { display: flex; gap: 10px; font-size: 9px; color: var(--text3); margin-bottom: 14px; }
+.adot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; vertical-align: middle; }
+
+/* SEP */
+.sep { height: 0.5px; background: #1a1a1a; }
+
+/* EVENTS */
+.section { padding: 14px 16px 0; }
+.see-all { font-size: 10px; color: var(--gold); cursor: pointer; }
+
+.ev-card {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 7px;
+}
+.ev-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.ev-name { font-size: 12px; font-weight: 500; color: #ddd; }
+.ev-bdg { font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
+.ev-bdg.auto { background: #1a0f00; color: #d08040; border: 0.5px solid #d0804030; }
+.ev-bdg.live-b { background: #1f1111; color: var(--red); border: 0.5px solid #d0505030; display: flex; align-items: center; gap: 3px; }
+.ev-meta { font-size: 10px; color: var(--text3); }
+.ev-join { margin-top:8px; padding-top:8px; border-top:0.5px solid #1e1e1e; display:flex; justify-content:flex-end; }
+
+.btn-sm {
+  font-size: 10px; padding: 4px 11px; border-radius: 6px;
+  border: 0.5px solid var(--gold); background: transparent;
+  color: var(--gold); cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-sm:hover { background: var(--gold); color: #111; }
+
+/* AVIS */
+.avis-card {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 11px 12px; margin-bottom: 7px;
+}
+.avis-top { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.avis-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.avis-meta { flex: 1; }
+.avis-name { font-size: 11px; font-weight: 500; color: #ddd; }
+.avis-date { font-size: 9px; color: var(--text3); }
+.avis-stars { color: var(--gold); font-size: 11px; letter-spacing: -1px; }
+.avis-text { font-size: 11px; color: var(--text2); line-height: 1.6; }
+.avis-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--gold-dim); color: var(--gold);
+  border: 0.5px solid var(--gold-border);
+  border-radius: 4px; font-size: 9px; padding: 2px 6px; margin-top: 6px;
+}
+
+.write-avis {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg3); border: 0.5px dashed var(--border2);
+  border-radius: 10px; padding: 11px 12px;
+  cursor: pointer; font-size: 11px; color: var(--text3);
+  margin-bottom: 7px; transition: border-color 0.15s;
+}
+.write-avis:hover { border-color: var(--gold-border); color: var(--gold); }
+
+.pb20 { padding-bottom: 20px; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  height: 56px; background: var(--bg2);
+  border-top: 0.5px solid var(--border);
+  display: flex; align-items: center;
+  flex-shrink: 0; position: sticky; bottom: 0; z-index: 100;
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  cursor: pointer; padding: 6px 4px;
+  color: var(--text3); font-size: 9px; transition: color 0.15s;
+}
+.bnav-item.on { color: var(--gold); }
+
+/* NOTIF ARRIVÉE — overlay */
+.arrival-notif {
+  position: fixed; top: 20px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  width: min(360px, calc(100vw - 24px));
+  background: #0f1f0f;
+  border: 0.5px solid #5a9e6a55;
+  border-radius: 14px; padding: 13px 15px;
+  display: flex; align-items: center; gap: 12px;
+  z-index: 999;
+  box-shadow: 0 8px 40px #00000088;
+  transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.arrival-notif.show { transform: translateX(-50%) translateY(0); }
+.arrival-ico { font-size: 26px; flex-shrink: 0; }
+.arrival-text { flex: 1; }
+.arrival-title { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 2px; }
+.arrival-sub { font-size: 11px; color: #5a9e6a80; }
+.arrival-cta {
+  background: var(--green); border: none; border-radius: 8px;
+  padding: 7px 12px; font-size: 11px; font-weight: 700;
+  color: #fff; cursor: pointer; font-family: inherit;
+  white-space: nowrap; flex-shrink: 0;
+}
+.arrival-close {
+  position: absolute; top: 8px; right: 10px;
+  font-size: 11px; color: #5a9e6a40; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- NOTIF ARRIVÉE (géofencing) -->
+<div class="arrival-notif" id="arrivalNotif">
+  <div class="arrival-close" onclick="dismissArrival()">✕</div>
+  <div class="arrival-ico">📍</div>
+  <div class="arrival-text">
+    <div class="arrival-title">Tu es arrivé à Léon Blum !</div>
+    <div class="arrival-sub">Géolocalisé · Actif 1h20 · Lance ton workout</div>
+  </div>
+  <button class="arrival-cta" onclick="dismissArrival()">🔥 Timer</button>
+</div>
+
+<div class="shell">
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="nav-back" onclick="history.back()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="nav-title">Fiche du lieu</div>
+    <div class="nav-logo"><div class="nav-dot"></div>YSport</div>
+  </div>
+
+  <div class="scroll-content">
+
+    <!-- GALERIE -->
+    <div class="gallery">
+      <div class="gallery-slides" id="gallerySlides">
+        <div class="gallery-slide">
+          <div class="slide-bg" style="background:linear-gradient(135deg,#1a2a0a,#0a1a0a);"></div>
+          <span style="position:relative;z-index:1;font-size:58px;">⚽</span>
+        </div>
+        <div class="gallery-slide">
+          <div class="slide-bg" style="background:linear-gradient(135deg,#0a1a2a,#050a1a);"></div>
+          <span style="position:relative;z-index:1;font-size:58px;">🏟️</span>
+        </div>
+        <div class="gallery-slide">
+          <div class="slide-bg" style="background:linear-gradient(135deg,#1a1005,#0a0a00);"></div>
+          <span style="position:relative;z-index:1;font-size:58px;">🌙</span>
+        </div>
+      </div>
+      <div class="gallery-badge">Gratuit</div>
+      <div class="gallery-live"><div class="live-dot"></div>24 actifs</div>
+      <div class="gallery-arrows">
+        <div class="garrow" onclick="prevSlide()">‹</div>
+        <div class="garrow" onclick="nextSlide()">›</div>
+      </div>
+      <div class="gallery-dots" id="galleryDots">
+        <div class="gdot on"></div>
+        <div class="gdot"></div>
+        <div class="gdot"></div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="lieu-hero">
+      <div class="lieu-name">Stade Léon Blum</div>
+      <div class="lieu-type">Terrain de football · Extérieur · Paris 11e</div>
+      <div class="lieu-tags">
+        <div class="ltag">Gazon synthétique</div>
+        <div class="ltag">Éclairé la nuit</div>
+        <div class="ltag">Vestiaires</div>
+        <div class="ltag">Accessible PMR</div>
+      </div>
+      <div class="rating-row">
+        <div class="rating-big">4.2</div>
+        <div>
+          <div class="stars-row">★★★★☆</div>
+          <div class="rating-info">128 avis · 47 visites ce mois</div>
+        </div>
+      </div>
+      <!-- Géofencing auto -->
+      <div class="geo-status-bar">
+        <div class="geo-dot"></div>
+        <div class="geo-text">
+          <div class="geo-title">Tu es détecté dans cette zone</div>
+          <div class="geo-sub">Marqué actif automatiquement</div>
+        </div>
+        <div class="geo-timer" id="geoTimer">1:08:00</div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="lieu-stats">
+      <div class="lstat"><div class="lstat-n">2</div><div class="lstat-l">Terrains</div></div>
+      <div class="lstat"><div class="lstat-n">24</div><div class="lstat-l">Actifs</div></div>
+      <div class="lstat"><div class="lstat-n">3</div><div class="lstat-l">Events</div></div>
+      <div class="lstat"><div class="lstat-n">0.4km</div><div class="lstat-l">De toi</div></div>
+    </div>
+
+    <!-- ════ ACTIONS ════ -->
+    <div class="actions-block">
+
+      <!-- BOUTON PRINCIPAL — Google Maps -->
+      <button class="gmaps-btn" onclick="openGoogleMaps()">
+        <div class="gmaps-ico">🗺️</div>
+        <div class="gmaps-text">
+          <div class="gmaps-title">Y aller · Google Maps</div>
+          <div class="gmaps-sub">Ouvre l'itinéraire depuis ta position</div>
+        </div>
+        <div class="gmaps-arrow">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </button>
+
+      <!-- Preview trajet (simulé) -->
+      <div class="trajet-preview" id="trajetPreview">
+        <div class="trajet-ico">🚶</div>
+        <div class="trajet-text">
+          <div class="trajet-title">Google Maps ouvert · 6 min à pied</div>
+          <div class="trajet-sub">Itinéraire généré · Stade Léon Blum, Paris 11e</div>
+        </div>
+        <div class="trajet-close" onclick="document.getElementById('trajetPreview').classList.remove('show')">✕</div>
+      </div>
+
+      <!-- Actions secondaires -->
+      <div class="secondary-actions">
+        <div class="sec-btn gold-btn" onclick="alert('Timer lancé 🔥')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Lancer timer
+        </div>
+        <div class="sec-btn" onclick="alert('Événement créé 🎯')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          + Événement
+        </div>
+        <div class="sec-btn" onclick="shareLocation()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Partager
+        </div>
+      </div>
+    </div>
+
+    <!-- AFFLUENCE -->
+    <div class="affluence-section">
+      <div class="section-header">
+        <div class="section-title">Affluence habituelle</div>
+        <div class="section-sub">Aujourd'hui · Samedi</div>
+      </div>
+      <div class="aff-bars" id="affBars"></div>
+      <div class="aff-legend">
+        <span><span class="adot" style="background:#C9A84C44;"></span>Calme</span>
+        <span><span class="adot" style="background:#C9A84C88;"></span>Modéré</span>
+        <span><span class="adot" style="background:#C9A84C;"></span>Intense</span>
+        <span style="color:var(--gold);font-weight:500;"><span class="adot" style="background:var(--gold);"></span>Maintenant</span>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- EVENTS -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Événements ici</div>
+        <div class="see-all">Voir tout</div>
+      </div>
+      <div style="padding-bottom:6px;">
+        <div class="ev-card">
+          <div class="ev-top">
+            <div class="ev-name">🤖 Défi AMRAP communautaire</div>
+            <div class="ev-bdg auto">Auto</div>
+          </div>
+          <div class="ev-meta">6 participants · 🏆 Marc · 12 rounds</div>
+          <div class="ev-join"><button class="btn-sm">Rejoindre</button></div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-top">
+            <div class="ev-name">Tournoi 5v5 Foot</div>
+            <div class="ev-bdg live-b"><div class="live-dot"></div>Sam 15h</div>
+          </div>
+          <div class="ev-meta">Kevin M. · 6/10 inscrits · Dans 2h</div>
+          <div class="ev-join"><button class="btn-sm">Rejoindre</button></div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-top">
+            <div class="ev-name">🤖 Kevin · habitué mardi 19h</div>
+            <div class="ev-bdg auto">Auto</div>
+          </div>
+          <div class="ev-meta">Récurrent · 2 confirmés cette semaine</div>
+          <div class="ev-join"><button class="btn-sm">Rejoindre</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- AVIS -->
+    <div class="section pb20">
+      <div class="section-header" style="margin-top:14px;">
+        <div class="section-title">Avis · 128</div>
+        <div class="see-all">Filtrer</div>
+      </div>
+      <div class="write-avis">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Laisser un avis sur ce lieu...
+      </div>
+      <div class="avis-card">
+        <div class="avis-top">
+          <div class="avis-av" style="background:#12122a;color:#7b8fff;">K</div>
+          <div class="avis-meta">
+            <div class="avis-name">Kevin M. · ⚡ Confirmé</div>
+            <div class="avis-date">Il y a 3 jours</div>
+          </div>
+          <div class="avis-stars">★★★★★</div>
+        </div>
+        <div class="avis-text">Terrain toujours bien entretenu, éclairage nickel le soir. J'y viens tous les mardis, top pour organiser des matchs via YSport.</div>
+        <div class="avis-tag">⚽ Foot</div>
+      </div>
+      <div class="avis-card">
+        <div class="avis-top">
+          <div class="avis-av" style="background:#142014;color:#5a9e6a;">S</div>
+          <div class="avis-meta">
+            <div class="avis-name">Sara L. · 🔥 Junior</div>
+            <div class="avis-date">Il y a 1 semaine</div>
+          </div>
+          <div class="avis-stars">★★★★☆</div>
+        </div>
+        <div class="avis-text">Super endroit, beaucoup de monde le weekend. Les vestiaires pourraient être mieux entretenus mais le terrain est excellent.</div>
+        <div class="avis-tag">🏋️ Workout</div>
+      </div>
+      <div class="avis-card">
+        <div class="avis-top">
+          <div class="avis-av" style="background:#1f1212;color:#d05050;">M</div>
+          <div class="avis-meta">
+            <div class="avis-name">Marc D. · 👑 Elite</div>
+            <div class="avis-date">Il y a 2 semaines</div>
+          </div>
+          <div class="avis-stars">★★★★☆</div>
+        </div>
+        <div class="avis-text">Le défi AMRAP lancé hier était dingue, on était 8 à se challenger en même temps. C'est ça YSport 🔥</div>
+        <div class="avis-tag">🤖 Event auto</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="bnav-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </div>
+    <div class="bnav-item on">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Fiche lieu
+    </div>
+    <div class="bnav-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Timer
+    </div>
+    <div class="bnav-item">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Carte
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── GALERIE ──
+let slideIdx = 0;
+const totalSlides = 3;
+function updateGallery() {
+  document.getElementById('gallerySlides').style.transform = `translateX(-${slideIdx * 100}%)`;
+  document.querySelectorAll('.gdot').forEach((d,i) => d.classList.toggle('on', i === slideIdx));
+}
+function nextSlide() { slideIdx = (slideIdx + 1) % totalSlides; updateGallery(); }
+function prevSlide() { slideIdx = (slideIdx - 1 + totalSlides) % totalSlides; updateGallery(); }
+setInterval(nextSlide, 4500);
+
+// ── GOOGLE MAPS ──
+function openGoogleMaps() {
+  // En prod : window.open(`https://www.google.com/maps/dir/?api=1&destination=48.8566,2.3522&travelmode=walking`)
+  // Ici on simule l'ouverture
+  const preview = document.getElementById('trajetPreview');
+  preview.classList.add('show');
+
+  // Simuler la notif d'arrivée après 8s (en prod = géofencing réel)
+  setTimeout(() => {
+    document.getElementById('arrivalNotif').classList.add('show');
+  }, 8000);
+}
+
+function dismissArrival() {
+  document.getElementById('arrivalNotif').classList.remove('show');
+}
+
+function shareLocation() {
+  if (navigator.share) {
+    navigator.share({ title: 'Stade Léon Blum — YSport', text: 'Rejoins-moi ici !', url: window.location.href });
+  } else {
+    alert('Lien copié 📋');
+  }
+}
+
+// ── GEO TIMER (compte à rebours 1h20) ──
+let geoSecs = 80 * 60;
+function updateGeoTimer() {
+  const h = Math.floor(geoSecs / 3600);
+  const m = Math.floor((geoSecs % 3600) / 60);
+  const s = geoSecs % 60;
+  const el = document.getElementById('geoTimer');
+  if (el) el.textContent = `${h ? h+':' : ''}${String(m).padStart(h?2:1,'0')}:${String(s).padStart(2,'0')}`;
+  if (geoSecs > 0) geoSecs--;
+}
+setInterval(updateGeoTimer, 1000);
+updateGeoTimer();
+
+// ── AFFLUENCE BARS ──
+const hours  = ['6h','8h','10h','12h','14h','16h','18h','20h','22h'];
+const levels = [12, 28, 42, 72, 55, 38, 88, 92, 58];
+const nowIdx = 6; // 18h = maintenant
+
+document.getElementById('affBars').innerHTML = hours.map((h, i) => {
+  const pct  = levels[i];
+  const isNow = i === nowIdx;
+  const color = pct > 70 ? '#C9A84C' : pct > 40 ? '#C9A84C88' : '#C9A84C44';
+  return `
+    <div class="aff-col">
+      <div class="aff-bar${isNow?' now':''}" style="height:${Math.round(pct*0.48)+4}px;">
+        <div class="aff-bar-fill" style="height:${pct}%;background:${isNow?'#C9A84C':color};"></div>
+      </div>
+      <div class="aff-lbl${isNow?' now':''}">${h}</div>
+    </div>
+  `;
+}).join('');
+
+// ── NOTIF ARRIVÉE auto après 5s (simulation géofencing) ──
+setTimeout(() => {
+  document.getElementById('arrivalNotif').classList.add('show');
+}, 5000);
+setTimeout(() => {
+  // Auto-dismiss après 8s si pas cliqué
+  const n = document.getElementById('arrivalNotif');
+  if (n.classList.contains('show')) n.classList.remove('show');
+}, 13000);
+</script>
+</body>
+</html>

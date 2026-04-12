@@ -1,0 +1,393 @@
+import { useEffect, useRef, useState } from 'react'
+import { colors } from '@/theme/theme'
+import { useMapStore } from '@/store/useMapStore'
+import { useAuth } from '@/contexts/AuthContext'
+import { useGeolocation } from '@/hooks/useGeolocation'
+import { fetchSpotsFromGouv, fetchEvents } from '@/lib/api'
+import { MAPBOX_TOKEN } from '@/lib/env'
+import Topbar from '@/components/ui/Topbar'
+import ChatPanel from '@/components/Chat/ChatPanel'
+import Sidebar from '@/components/Map/Sidebar'
+import MapView from '@/components/Map/MapView'
+import SpotPopup from '@/components/Map/SpotPopup'
+import ToastQueue from '@/components/Map/ToastQueue'
+import VenueModal from '@/components/Venue/VenueModal'
+import ProfileModal from '@/components/Profile/ProfileModal'
+import AuthPromptModal from '@/components/Profile/AuthPromptModal'
+import MobileNav from '@/components/ui/MobileNav'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import type { Spot, LatLng } from '@/types'
+import { SPOTS as MOCK_SPOTS } from '@/data/mock'
+
+const FIRST_TOAST_DELAY  = 8000
+const INTER_TOAST_PAUSE  = 12000
+
+interface MapPageProps {
+  onGoToLanding?: () => void
+  onGoToOnboarding?: () => void
+}
+
+export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProps) {
+  const store    = useMapStore()
+  const { user } = useAuth()
+  const isMobile = useIsMobile()
+  const geo      = useGeolocation()
+
+  const [venueSpot, setVenueSpot]       = useState<Spot | null>(null)
+  const [profileOpen, setProfileOpen]   = useState(false)
+  const [authPromptOpen, setAuthPromptOpen] = useState(false)
+  const [cityName, setCityName]         = useState<string | null>(null)
+  const [searchCoords, setSearchCoords] = useState<LatLng | null>(null)
+
+  // mapCenter = centre + rayon visibles (piloté par GPS puis par moveend de MapView)
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; radius: number } | null>(null)
+  const boundsTimerRef    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const sportsPrefiltered = useRef(false)
+  // Garantit que le setMapCenter GPS-first ne se déclenche qu'une seule fois
+  const gpsInitDone       = useRef(false)
+
+  // ── Pré-filtrage sports depuis l'onboarding (localStorage) ou profil user ──
+  useEffect(() => {
+    if (sportsPrefiltered.current) return
+    if (store.sportFilters.length > 0) { sportsPrefiltered.current = true; return }
+
+    // Source 1 : sports du profil (après login)
+    const fromUser = user?.sports ?? []
+    // Source 2 : sports sélectionnés pendant l'onboarding (persistés en localStorage)
+    let fromStorage: string[] = []
+    try {
+      const raw = localStorage.getItem('ysport_sports')
+      if (raw) fromStorage = JSON.parse(raw) as string[]
+    } catch { /* ignore */ }
+
+    const sportsToApply = fromUser.length > 0 ? fromUser : fromStorage
+    if (sportsToApply.length === 0) return
+
+    sportsPrefiltered.current = true
+    // Max 2 filtres simultanés — on prend les 2 premiers
+    sportsToApply.slice(0, 2).forEach(s => store.toggleSportFilter(s as never))
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── GPS-first : déclenche le premier fetch dès que la position est connue ──
+  useEffect(() => {
+    if (!geo.coords || gpsInitDone.current) return
+    gpsInitDone.current = true
+    setMapCenter({ lat: geo.coords.lat, lng: geo.coords.lng, radius: 10 })
+  }, [geo.coords?.lat, geo.coords?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Fallback GPS : si pas de position après 8s → Paris par défaut ──
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (!gpsInitDone.current) {
+        gpsInitDone.current = true
+        setMapCenter({ lat: 48.8534, lng: 2.3488, radius: 10 })
+      }
+    }, 8_000)
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handler debounced reçu depuis MapView via onBoundsChange
+  const handleBoundsChange = (lat: number, lng: number, radius: number) => {
+    clearTimeout(boundsTimerRef.current)
+    boundsTimerRef.current = setTimeout(() => setMapCenter({ lat, lng, radius }), 500)
+  }
+
+  // ── Chargement des spots — basé sur la zone visible ──
+  useEffect(() => {
+    if (!mapCenter) return
+    const controller = new AbortController()
+    // Sécurité : si Supabase ne répond pas après 10s, on bascule sur les mocks
+    const timeout = setTimeout(() => controller.abort(), 10_000)
+    store.setStoreLoading(true)
+
+    const activeFilters = store.sportFilters.length > 0 ? store.sportFilters : undefined
+
+    fetchSpotsFromGouv(mapCenter.lat, mapCenter.lng, mapCenter.radius, activeFilters, controller.signal)
+      .then(spots => {
+        clearTimeout(timeout)
+        if (!controller.signal.aborted) store.loadSpots(spots)
+      })
+      .catch(err => {
+        clearTimeout(timeout)
+        // Abort intentionnel (cleanup re-run, démontage) → on ne charge pas les mocks
+        if (controller.signal.aborted) return
+        console.warn('API indisponible, utilisation des données mock:', err instanceof Error ? err.message : String(err))
+        const mockInZone = MOCK_SPOTS.filter(s => {
+          const dist = Math.sqrt(
+            Math.pow((s.coords.lat - mapCenter.lat) * 111, 2) +
+            Math.pow((s.coords.lng - mapCenter.lng) * 111 * Math.cos(mapCenter.lat * Math.PI / 180), 2)
+          )
+          return dist <= mapCenter.radius
+        })
+        const hasFilters = store.sportFilters.length > 0
+        const nearby   = hasFilters ? mockInZone.filter(s => store.sportFilters.some(f => s.sports.includes(f))) : mockInZone
+        const fallback = hasFilters ? MOCK_SPOTS.filter(s => store.sportFilters.some(f => s.sports.includes(f))) : MOCK_SPOTS
+        store.loadSpots(nearby.length > 0 ? nearby : fallback)
+      })
+
+    return () => {
+      clearTimeout(timeout)
+      controller.abort()
+      // Pas de setStoreLoading(false) ici : le store est local à MapPage et se réinitialise
+      // avec le composant. L'appeler ici créait un flash isLoading=false entre deux re-runs.
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapCenter?.lat, mapCenter?.lng, mapCenter?.radius, store.sportFilters.join(',')])
+
+  // ── Reverse geocoding — ville réelle via Mapbox ──────────
+  useEffect(() => {
+    if (!geo.coords || searchCoords) return
+    const { lat, lng } = geo.coords
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=place&limit=1`)
+      .then(r => r.json())
+      .then((d: { features?: { text?: string }[] }) => {
+        const name = d.features?.[0]?.text
+        if (name) setCityName(name)
+      })
+      .catch(() => {})
+  }, [geo.coords?.lat, geo.coords?.lng, searchCoords]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Recherche ville (Enter) — forward geocoding Mapbox ────
+  async function handleCitySearch(query: string) {
+    if (!query.trim()) {
+      setSearchCoords(null)
+      store.setSearch('')
+      return
+    }
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&types=place,postcode&country=fr&limit=1`
+      const r = await fetch(url)
+      const d = await r.json() as { features?: { center?: [number, number]; text?: string; place_name?: string }[] }
+      const feature = d.features?.[0]
+      if (feature?.center) {
+        const [lng, lat] = feature.center
+        setSearchCoords({ lat, lng })          // déclenche le pan visuel dans MapView
+        setMapCenter({ lat, lng, radius: 5 })  // déclenche le fetch immédiatement
+        // NE PAS écraser cityName : il doit toujours refléter la vraie position de l'utilisateur
+      } else {
+        // Pas de ville trouvée : filtre par nom de spot
+        store.setSearch(query)
+      }
+    } catch {
+      store.setSearch(query)
+    }
+  }
+
+  // ── Chargement des events ──
+  useEffect(() => {
+    fetchEvents()
+      .then(events => store.loadEvents(events))
+      .catch(() => { /* events silencieux */ })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Toast cycle ──
+  useEffect(() => {
+    const t = setTimeout(() => store.showNextToast(), FIRST_TOAST_DELAY)
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleToastComplete() {
+    store.dismissToast()
+    setTimeout(() => store.showNextToast(), INTER_TOAST_PAUSE)
+  }
+
+  function handleToastDismiss() {
+    store.dismissToast()
+    setTimeout(() => store.showNextToast(), INTER_TOAST_PAUSE)
+  }
+
+  function handleSelectSpot(spot: Spot | null) {
+    store.selectSpot(spot)
+    if (isMobile && spot) {
+      store.setTab('lieu')
+      setVenueSpot(spot)
+    }
+  }
+
+  // Infos topbar depuis l'utilisateur authentifié ou fallback
+  const userZone    = cityName ?? (geo.coords ? 'Votre position' : (user?.handle ?? 'Paris'))
+  const userInitial = user?.initial ?? '?'
+  const userIcon    = user?.levelIcon ?? '🥉'
+
+  // Données visibles = spots réels Supabase uniquement (pas de mock Paris pour les non-parisiens)
+  const visibleSpots = store.filteredSpots
+
+  const popupBottom = isMobile ? 68 : 12
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: colors.bg, overflow: 'hidden', position: 'relative' }}>
+
+      {/* ── Topbar ── */}
+      <div style={{ padding: '8px 10px 0', zIndex: 50, position: 'relative', flexShrink: 0 }}>
+        <Topbar
+          zone={userZone}
+          user={{ initial: userInitial, level: userIcon }}
+          chatOpen={store.chatOpen}
+          onToggleChat={store.toggleChat}
+          onSearch={store.setSearch}
+          onSearchCity={handleCitySearch}
+          onOpenProfile={() => user ? setProfileOpen(true) : setAuthPromptOpen(true)}
+          onLogoClick={onGoToLanding}
+        />
+      </div>
+
+      {/* ── Overlay fermeture chat ── */}
+      {store.chatOpen && (
+        <div
+          onClick={store.toggleChat}
+          style={{ position: 'absolute', inset: 0, zIndex: 199, cursor: 'default' }}
+        />
+      )}
+
+      {/* ── Chat panel ── */}
+      <div style={{
+        position: 'absolute', top: 72, left: 10, right: 10, zIndex: 200,
+        pointerEvents: store.chatOpen ? 'auto' : 'none',
+      }}>
+        <ChatPanel open={store.chatOpen} zone={userZone} />
+      </div>
+
+      {/* ── Corps principal ── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', marginTop: 8 }}>
+
+        {/* Sidebar (desktop uniquement) */}
+        {!isMobile && (
+          <Sidebar
+            activeTab={store.activeTab}
+            spots={store.filteredSpots}
+            events={store.events}
+            workouts={store.workouts}
+            selectedSpot={store.selectedSpot}
+            sportFilters={store.sportFilters}
+            frozenSport={store.frozenSport}
+            onToggleSport={store.toggleSportFilter}
+            onClearFilters={store.clearSportFilters}
+            onClearFrozen={store.clearFrozenSport}
+            onSelectSpot={spot => { store.selectSpot(spot); store.setTab('spots') }}
+            onSetTab={store.setTab}
+            onViewVenue={spot => setVenueSpot(spot)}
+          />
+        )}
+
+        {/* Zone carte */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', zIndex: 1 }}>
+          <MapView
+            spots={visibleSpots}
+            events={store.events}
+            selectedSpot={store.selectedSpot}
+            onSelectSpot={handleSelectSpot}
+            userCoords={geo.coords}
+            centerOverride={searchCoords}
+            sportFilters={store.sportFilters}
+            isLoading={store.isLoading}
+            onBoundsChange={handleBoundsChange}
+          />
+
+          {/* Indicateur chargement / erreur — visible aussi pendant l'attente GPS */}
+          {(!mapCenter || store.isLoading) && (
+            <div style={{
+              position: 'absolute', top: 10, left: 10, zIndex: 800,
+              background: 'rgba(14,14,14,0.88)', border: `0.5px solid ${colors.goldBorder}`,
+              borderRadius: 999, padding: '5px 12px 5px 8px',
+              backdropFilter: 'blur(12px)',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: colors.gold, display: 'inline-block',
+                animation: 'ysport-live 1.2s infinite',
+                flexShrink: 0,
+              }} />
+              <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 11, color: colors.text2 }}>
+                {geo.coords ? 'Recherche des terrains…' : 'Localisation en cours…'}
+              </span>
+            </div>
+          )}
+          {!store.isLoading && store.loadError && (
+            <div style={{
+              position: 'absolute', top: 10, left: 10, zIndex: 800,
+              background: 'rgba(30,12,12,0.95)', border: `0.5px solid ${colors.red}55`,
+              borderRadius: 8, padding: '6px 12px', fontSize: 11,
+              backdropFilter: 'blur(8px)', color: colors.red, maxWidth: 260,
+            }}>
+              ⚠️ {store.loadError}
+            </div>
+          )}
+
+          {/* Bandeau workouts actifs */}
+          {!store.isLoading && store.workouts.length > 0 && (
+            <div style={{
+              position: 'absolute', top: 10, left: 10, zIndex: 800,
+              background: 'rgba(22,17,17,0.9)', border: `0.5px solid ${colors.red}30`,
+              borderRadius: 8, padding: '6px 10px',
+              display: 'flex', alignItems: 'center', gap: 6, fontSize: 11,
+              backdropFilter: 'blur(8px)',
+            }}>
+              <span style={{ width: 5, height: 5, background: colors.red, borderRadius: '50%', display: 'inline-block', animation: 'ysport-live 1.2s infinite' }} />
+              <span style={{ color: '#888' }}>
+                <b style={{ color: colors.red }}>{store.workouts.length} workouts</b> en cours près de vous
+              </span>
+            </div>
+          )}
+
+          {/* Slot bas : popup OU toast */}
+          {store.activeToast ? (
+            <ToastQueue
+              toast={store.activeToast}
+              onDismiss={handleToastDismiss}
+              onComplete={handleToastComplete}
+              bottomOffset={popupBottom}
+            />
+          ) : (
+            <SpotPopup
+              spot={store.selectedSpot}
+              onClose={() => { store.selectSpot(null); if (isMobile) store.setTab('spots') }}
+              onViewVenue={spot => setVenueSpot(spot)}
+              onCreateEvent={spot => console.log('Créer event', spot.name)}
+              bottomOffset={popupBottom}
+            />
+          )}
+
+          {/* Fiche lieu */}
+          {venueSpot && (
+            <VenueModal
+              spot={venueSpot}
+              events={store.events}
+              userCoords={geo.coords}
+              onClose={() => {
+                setVenueSpot(null)
+                if (isMobile) store.setTab('spots')
+              }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ── Mobile nav ── */}
+      {isMobile && (
+        <MobileNav
+          activeTab={store.activeTab}
+          onSetTab={tab => {
+            store.setTab(tab)
+            if (tab === 'lieu' && store.selectedSpot) setVenueSpot(store.selectedSpot)
+            if (tab !== 'lieu') setVenueSpot(null)
+          }}
+          hasSelectedSpot={!!store.selectedSpot}
+        />
+      )}
+
+      {/* Profil */}
+      <ProfileModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+      />
+
+      {/* Auth prompt (user non connecté) */}
+      <AuthPromptModal
+        open={authPromptOpen}
+        onClose={() => setAuthPromptOpen(false)}
+        onGoToOnboarding={() => { setAuthPromptOpen(false); onGoToOnboarding?.() }}
+      />
+    </div>
+  )
+}

@@ -1,0 +1,651 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+
+.page { background: #0e0e0e; color: #f0f0f0; overflow-x: hidden; }
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: #0e0e0eee;
+  border-bottom: 0.5px solid #1e1e1e;
+  backdrop-filter: blur(12px);
+  padding: 0 32px;
+  height: 56px;
+  display: flex; align-items: center; gap: 16px;
+}
+.nav-logo { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: #fff; }
+.nav-dot { width: 7px; height: 7px; background: #C9A84C; border-radius: 50%; }
+.nav-links { display: flex; gap: 24px; margin-left: 32px; }
+.nav-link { font-size: 13px; color: #555; cursor: pointer; transition: color 0.15s; }
+.nav-link:hover { color: #aaa; }
+.nav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn-ghost {
+  font-size: 13px; padding: 7px 16px; border-radius: 8px;
+  border: 0.5px solid #2a2a2a; background: transparent;
+  color: #888; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-ghost:hover { border-color: #444; color: #ccc; }
+.btn-gold {
+  font-size: 13px; padding: 7px 18px; border-radius: 8px;
+  border: none; background: #C9A84C;
+  color: #111; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-gold:hover { background: #d4af5a; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 60px 32px 40px;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, #C9A84C08 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #C9A84C12; border: 0.5px solid #C9A84C33;
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 11px; color: #C9A84C; font-weight: 500;
+  margin-bottom: 24px; letter-spacing: 0.5px;
+}
+.label-dot { width: 5px; height: 5px; background: #C9A84C; border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+.hero-title {
+  font-size: 52px; font-weight: 700;
+  text-align: center; line-height: 1.1;
+  color: #fff; max-width: 640px;
+  margin-bottom: 16px;
+  letter-spacing: -1.5px;
+}
+.hero-title span { color: #C9A84C; }
+
+.hero-sub {
+  font-size: 16px; color: #555; text-align: center;
+  max-width: 440px; line-height: 1.6; margin-bottom: 32px;
+}
+
+.hero-cta { display: flex; gap: 10px; align-items: center; margin-bottom: 48px; }
+.btn-hero {
+  font-size: 14px; padding: 12px 28px; border-radius: 10px;
+  border: none; background: #C9A84C;
+  color: #111; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: all 0.15s;
+}
+.btn-hero:hover { background: #d4af5a; transform: translateY(-1px); }
+.btn-hero-ghost {
+  font-size: 14px; padding: 12px 22px; border-radius: 10px;
+  border: 0.5px solid #2a2a2a; background: transparent;
+  color: #666; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-hero-ghost:hover { border-color: #444; color: #bbb; }
+
+.hero-free { font-size: 12px; color: #383838; }
+.hero-free b { color: #5a9e6a; }
+
+/* MAP PREVIEW */
+.map-preview {
+  width: 100%; max-width: 820px;
+  height: 340px;
+  border-radius: 16px;
+  border: 0.5px solid #2a2a2a;
+  overflow: hidden;
+  position: relative;
+  background: #1a1a1a;
+}
+
+.map-preview svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.mp-chip {
+  position: absolute; z-index: 5;
+  background: #161616ee; border: 0.5px solid #2a2a2a;
+  border-radius: 8px; padding: 7px 11px;
+  font-size: 11px; color: #888;
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; gap: 6px;
+}
+.mp-chip.top { top: 14px; left: 14px; }
+.mp-chip.right { top: 14px; right: 14px; flex-direction: column; gap: 5px; }
+.mp-mc { width: 28px; height: 28px; background: #1e1e1e; border: 0.5px solid #2e2e2e; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 13px; cursor: pointer; }
+
+.map-pin {
+  position: absolute; z-index: 6;
+  display: flex; flex-direction: column; align-items: center;
+  transform: translate(-50%, -100%);
+}
+.mp-label {
+  background: #1e1e1e; border: 0.5px solid #333;
+  border-radius: 6px; padding: 3px 8px;
+  font-size: 10px; font-weight: 500; color: #bbb;
+  white-space: nowrap; margin-bottom: 3px;
+}
+.mp-label.g { background: #C9A84C; border-color: #C9A84C; color: #111; }
+.mp-label.e { background: #12122a; border-color: #7b8fff44; color: #7b8fff; }
+.mp-stem { width: 1.5px; height: 8px; background: #333; }
+.mp-stem.g { background: #C9A84C; }
+.mp-stem.e { background: #7b8fff66; }
+.mp-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; border: 1.5px solid #1a1a1a; }
+.mp-dot.g { background: #C9A84C; }
+.mp-dot.e { background: #7b8fff; }
+
+.user-pin {
+  position: absolute; z-index: 7;
+  transform: translate(-50%, -50%);
+}
+.user-pin-inner {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #C9A84C; border: 2px solid #111;
+  box-shadow: 0 0 0 5px #C9A84C18;
+}
+
+.map-radius {
+  position: absolute; z-index: 2;
+  border-radius: 50%;
+  border: 1px dashed #C9A84C33;
+  background: #C9A84C05;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.mp-popup {
+  position: absolute; bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: #161616f0; border: 0.5px solid #C9A84C33;
+  border-radius: 12px; padding: 11px 14px;
+  display: flex; gap: 10px; align-items: center;
+  width: 260px; z-index: 10;
+  backdrop-filter: blur(8px);
+}
+.mp-popup-ico { width: 40px; height: 40px; background: #222; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.mp-popup-title { font-size: 12px; font-weight: 500; color: #eee; }
+.mp-popup-sub { font-size: 10px; color: #484848; margin-top: 1px; }
+.mp-popup-stats { display: flex; gap: 8px; font-size: 10px; color: #555; margin-top: 5px; }
+.mp-popup-stats b { color: #C9A84C; }
+
+/* ── STATS STRIP ── */
+.stats-strip {
+  display: flex; justify-content: center; gap: 0;
+  border-top: 0.5px solid #1a1a1a;
+  border-bottom: 0.5px solid #1a1a1a;
+  background: #121212;
+}
+.stat-item {
+  flex: 1; max-width: 200px;
+  padding: 28px 20px; text-align: center;
+  border-right: 0.5px solid #1a1a1a;
+}
+.stat-item:last-child { border-right: none; }
+.stat-num { font-size: 28px; font-weight: 700; color: #C9A84C; letter-spacing: -1px; }
+.stat-label { font-size: 11px; color: #484848; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+/* ── FEATURES ── */
+.features {
+  padding: 80px 32px;
+  max-width: 900px; margin: 0 auto;
+}
+.section-label {
+  font-size: 10px; color: #C9A84C; text-transform: uppercase;
+  letter-spacing: 1.2px; font-weight: 600; margin-bottom: 10px;
+}
+.section-title {
+  font-size: 32px; font-weight: 700; color: #fff;
+  letter-spacing: -0.8px; margin-bottom: 48px; line-height: 1.2;
+}
+.section-title span { color: #C9A84C; }
+
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.feat-card {
+  background: #141414;
+  border: 0.5px solid #1e1e1e;
+  border-radius: 14px;
+  padding: 22px 20px;
+  transition: border-color 0.2s;
+  cursor: default;
+}
+.feat-card:hover { border-color: #C9A84C33; }
+.feat-ico {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 14px;
+}
+.feat-ico.gold { background: #C9A84C15; }
+.feat-ico.blue { background: #12122a; }
+.feat-ico.green { background: #142014; }
+.feat-title { font-size: 14px; font-weight: 600; color: #e0e0e0; margin-bottom: 6px; }
+.feat-desc { font-size: 12px; color: #484848; line-height: 1.6; }
+
+/* ── COMMUNITY ── */
+.community {
+  background: #121212;
+  border-top: 0.5px solid #1a1a1a;
+  border-bottom: 0.5px solid #1a1a1a;
+  padding: 72px 32px;
+  display: flex; gap: 64px; align-items: center;
+  max-width: 900px; margin: 0 auto;
+}
+.comm-text { flex: 1; }
+.comm-chat {
+  flex: 1;
+  background: #161616;
+  border: 0.5px solid #222;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.comm-chat-header {
+  padding: 10px 13px;
+  border-bottom: 0.5px solid #1e1e1e;
+  display: flex; align-items: center; gap: 7px;
+}
+.online-dot { width: 6px; height: 6px; background: #5a9e6a; border-radius: 50%; }
+.comm-chat-title { font-size: 12px; font-weight: 500; color: #ccc; }
+.comm-chat-sub { font-size: 10px; color: #3a3a3a; }
+.comm-chat-temp { font-size: 9px; color: #C9A84C66; background: #C9A84C08; padding: 4px 12px; border-bottom: 0.5px solid #C9A84C15; text-align: center; }
+.comm-msgs { padding: 10px 11px; display: flex; flex-direction: column; gap: 8px; }
+.cmsg { display: flex; gap: 7px; }
+.cmsg-av { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.cmsg-name { font-size: 9px; color: #3a3a3a; margin-bottom: 2px; }
+.cmsg-text { background: #1e1e1e; border: 0.5px solid #252525; border-radius: 2px 7px 7px 7px; padding: 5px 8px; font-size: 11px; color: #ccc; line-height: 1.4; display: inline-block; }
+.cmsg-mention { background: #12122a; color: #7b8fff; border-radius: 3px; padding: 0 4px; font-size: 10px; }
+
+/* ── PRICING ── */
+.pricing {
+  padding: 80px 32px;
+  max-width: 720px; margin: 0 auto; text-align: center;
+}
+.plans { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 40px; text-align: left; }
+.plan {
+  background: #141414;
+  border: 0.5px solid #1e1e1e;
+  border-radius: 14px; padding: 24px 22px;
+}
+.plan.featured { border-color: #C9A84C55; background: #161410; }
+.plan-badge {
+  font-size: 10px; color: #C9A84C; background: #C9A84C15;
+  border: 0.5px solid #C9A84C33; border-radius: 20px;
+  padding: 3px 10px; display: inline-block; margin-bottom: 12px;
+}
+.plan-name { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.plan-price { font-size: 28px; font-weight: 700; color: #C9A84C; letter-spacing: -1px; }
+.plan-price span { font-size: 13px; font-weight: 400; color: #484848; }
+.plan-desc { font-size: 11px; color: #484848; margin: 8px 0 16px; line-height: 1.5; }
+.plan-feat { display: flex; flex-direction: column; gap: 7px; margin-bottom: 20px; }
+.plan-feat-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #888; }
+.plan-check { width: 14px; height: 14px; border-radius: 50%; background: #C9A84C18; border: 0.5px solid #C9A84C44; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.plan-check svg { display: block; }
+.plan-btn {
+  width: 100%; padding: 10px; border-radius: 9px; font-size: 13px;
+  font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.plan-btn.free { background: transparent; border: 0.5px solid #2a2a2a; color: #666; }
+.plan-btn.free:hover { border-color: #444; color: #bbb; }
+.plan-btn.gold { background: #C9A84C; border: none; color: #111; }
+.plan-btn.gold:hover { background: #d4af5a; }
+
+/* ── CTA FINAL ── */
+.cta-final {
+  padding: 80px 32px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 50% 80% at 50% 100%, #C9A84C0a 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-title { font-size: 36px; font-weight: 700; color: #fff; letter-spacing: -1px; margin-bottom: 10px; }
+.cta-sub { font-size: 14px; color: #484848; margin-bottom: 28px; }
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 0.5px solid #1a1a1a;
+  padding: 24px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: #0c0c0c;
+}
+.footer-logo { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #444; }
+.footer-dot { width: 5px; height: 5px; background: #C9A84C66; border-radius: 50%; }
+.footer-links { display: flex; gap: 20px; }
+.footer-link { font-size: 11px; color: #333; cursor: pointer; }
+.footer-link:hover { color: #666; }
+</style>
+
+<div class="page">
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="nav-logo"><div class="nav-dot"></div>YSport</div>
+    <div class="nav-links">
+      <div class="nav-link">Découvrir</div>
+      <div class="nav-link">Événements</div>
+      <div class="nav-link">Communauté</div>
+      <div class="nav-link">Premium</div>
+    </div>
+    <div class="nav-right">
+      <button class="btn-ghost">Connexion</button>
+      <button class="btn-gold" onclick="sendPrompt('Je veux créer mon compte YSport')">Commencer gratuitement</button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-bg"></div>
+
+    <div class="hero-label">
+      <div class="label-dot"></div>
+      3 workouts en cours près de vous maintenant
+    </div>
+
+    <div class="hero-title">
+      Trouve ton spot.<br><span>Joue maintenant.</span>
+    </div>
+
+    <div class="hero-sub">
+      Terrains, salles, pistes — géolocalisés en temps réel. Rejoins les sportifs de ton quartier en quelques secondes.
+    </div>
+
+    <div class="hero-cta">
+      <button class="btn-hero" onclick="sendPrompt('Je veux créer mon compte YSport')">Trouver un spot →</button>
+      <button class="btn-hero-ghost">Voir comment ça marche</button>
+    </div>
+
+    <div class="hero-free"><b>100% gratuit</b> pour commencer · Aucune CB requise</div>
+
+    <!-- MAP PREVIEW -->
+    <div class="map-preview" style="margin-top:40px;">
+      <svg viewBox="0 0 820 340" preserveAspectRatio="xMidYMid slice">
+        <rect width="820" height="340" fill="#1c1c1e"/>
+        <rect x="20" y="10" width="100" height="60" rx="3" fill="#212121"/>
+        <rect x="140" y="8" width="80" height="48" rx="3" fill="#212121"/>
+        <rect x="240" y="14" width="120" height="55" rx="3" fill="#212121"/>
+        <rect x="380" y="10" width="90" height="62" rx="3" fill="#212121"/>
+        <rect x="490" y="12" width="110" height="52" rx="3" fill="#212121"/>
+        <rect x="622" y="8" width="80" height="58" rx="3" fill="#212121"/>
+        <rect x="720" y="10" width="90" height="50" rx="3" fill="#212121"/>
+        <rect x="20" y="106" width="80" height="78" rx="3" fill="#212121"/>
+        <rect x="122" y="100" width="106" height="70" rx="3" fill="#212121"/>
+        <rect x="248" y="108" width="90" height="72" rx="3" fill="#212121"/>
+        <rect x="360" y="102" width="118" height="68" rx="3" fill="#212121"/>
+        <rect x="500" y="106" width="88" height="74" rx="3" fill="#212121"/>
+        <rect x="610" y="100" width="110" height="70" rx="3" fill="#212121"/>
+        <rect x="740" y="105" width="75" height="72" rx="3" fill="#212121"/>
+        <rect x="14" y="216" width="100" height="66" rx="3" fill="#212121"/>
+        <rect x="136" y="210" width="90" height="72" rx="3" fill="#212121"/>
+        <rect x="250" y="218" width="116" height="64" rx="3" fill="#212121"/>
+        <rect x="390" y="212" width="88" height="70" rx="3" fill="#212121"/>
+        <rect x="500" y="216" width="108" height="66" rx="3" fill="#212121"/>
+        <rect x="630" y="210" width="90" height="72" rx="3" fill="#212121"/>
+        <rect x="742" y="215" width="75" height="65" rx="3" fill="#212121"/>
+        <rect x="14" y="300" width="120" height="40" rx="3" fill="#212121"/>
+        <rect x="156" y="305" width="90" height="35" rx="3" fill="#212121"/>
+        <rect x="268" y="300" width="110" height="40" rx="3" fill="#212121"/>
+        <rect x="400" y="304" width="95" height="36" rx="3" fill="#212121"/>
+        <rect x="516" y="300" width="108" height="40" rx="3" fill="#212121"/>
+        <rect x="648" y="303" width="90" height="37" rx="3" fill="#212121"/>
+        <line x1="0" y1="88" x2="820" y2="88" stroke="#272727" stroke-width="10"/>
+        <line x1="0" y1="194" x2="820" y2="194" stroke="#272727" stroke-width="14"/>
+        <line x1="0" y1="296" x2="820" y2="296" stroke="#272727" stroke-width="8"/>
+        <line x1="118" y1="0" x2="118" y2="340" stroke="#272727" stroke-width="10"/>
+        <line x1="236" y1="0" x2="236" y2="340" stroke="#272727" stroke-width="14"/>
+        <line x1="372" y1="0" x2="372" y2="340" stroke="#272727" stroke-width="10"/>
+        <line x1="490" y1="0" x2="490" y2="340" stroke="#272727" stroke-width="8"/>
+        <line x1="616" y1="0" x2="616" y2="340" stroke="#272727" stroke-width="8"/>
+        <line x1="732" y1="0" x2="732" y2="340" stroke="#272727" stroke-width="6"/>
+        <ellipse cx="410" cy="195" rx="42" ry="22" fill="#182018"/>
+      </svg>
+
+      <!-- Radius -->
+      <div class="map-radius" style="width:170px;height:170px;left:50%;top:55%;"></div>
+
+      <!-- Pins -->
+      <div class="map-pin" style="left:50%;top:52%;">
+        <div class="mp-label g">Léon Blum ⚽</div>
+        <div class="mp-stem g"></div>
+        <div class="mp-dot g"></div>
+      </div>
+      <div class="map-pin" style="left:64%;top:35%;">
+        <div class="mp-label">Jean Moulin 🏀</div>
+        <div class="mp-stem"></div>
+        <div class="mp-dot"></div>
+      </div>
+      <div class="map-pin" style="left:34%;top:68%;">
+        <div class="mp-label e">Running 🎯</div>
+        <div class="mp-stem e"></div>
+        <div class="mp-dot e"></div>
+      </div>
+      <div class="map-pin" style="left:74%;top:62%;">
+        <div class="mp-label">Tennis 🎾</div>
+        <div class="mp-stem"></div>
+        <div class="mp-dot"></div>
+      </div>
+
+      <!-- User dot -->
+      <div class="user-pin" style="left:50%;top:55%;"><div class="user-pin-inner"></div></div>
+
+      <!-- Top bar -->
+      <div class="mp-chip top">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Paris 11e · 14 spots trouvés
+      </div>
+
+      <!-- Controls -->
+      <div class="mp-chip right">
+        <div class="mp-mc">+</div>
+        <div class="mp-mc">−</div>
+        <div class="mp-mc">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+      </div>
+
+      <!-- Popup -->
+      <div class="mp-popup">
+        <div class="mp-popup-ico">⚽</div>
+        <div>
+          <div class="mp-popup-title">Stade Léon Blum</div>
+          <div class="mp-popup-sub">Gratuit · 0.4 km · Disponible maintenant</div>
+          <div class="mp-popup-stats">
+            <div>Note <b>4.2</b></div>
+            <div>Joueurs <b>24</b></div>
+            <div>Événement <b>1</b></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-num">+2 400</div>
+      <div class="stat-label">Spots référencés</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">18 villes</div>
+      <div class="stat-label">Couvertes en France</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Gratuit par défaut</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">Live</div>
+      <div class="stat-label">Disponibilité en temps réel</div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="features">
+    <div class="section-label">Pourquoi YSport</div>
+    <div class="section-title">Tout ce qu'il faut<br>pour <span>jouer maintenant</span></div>
+
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-ico gold">📍</div>
+        <div class="feat-title">Spots géolocalisés</div>
+        <div class="feat-desc">Terrains, salles, pistes — trouve un lieu dispo en temps réel autour de toi, avec disponibilité et affluence live.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico blue">💬</div>
+        <div class="feat-title">Canal communautaire</div>
+        <div class="feat-desc">Un chat local temporaire (10 km) pour trouver des partenaires, organiser une session, sans quitter l'app.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico green">🎯</div>
+        <div class="feat-title">Créer un événement</div>
+        <div class="feat-desc">Organise un match, une session running ou un workout sur n'importe quel spot référencé en 30 secondes.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico gold">🔥</div>
+        <div class="feat-title">Workout en live</div>
+        <div class="feat-desc">Rejoins un workout déjà lancé près de toi ou démarre le tien et invite le canal local à participer.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico blue">🏃</div>
+        <div class="feat-title">Tous les sports</div>
+        <div class="feat-desc">Foot, basket, tennis, running, muscu, yoga, piscine — filtre par sport et trouve exactement ce dont tu as besoin.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-ico green">📱</div>
+        <div class="feat-title">Web & mobile</div>
+        <div class="feat-desc">Application disponible sur navigateur et bientôt sur iOS et Android — ta session t'accompagne partout.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY SECTION -->
+  <div style="background:#121212;border-top:0.5px solid #1a1a1a;border-bottom:0.5px solid #1a1a1a;padding:72px 32px;">
+    <div style="max-width:820px;margin:0 auto;display:flex;gap:56px;align-items:center;">
+      <div style="flex:1;">
+        <div class="section-label">Communauté locale</div>
+        <div style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.8px;line-height:1.2;margin-bottom:14px;">Parle avec les sportifs<br><span style="color:#C9A84C;">de ton quartier</span></div>
+        <div style="font-size:13px;color:#484848;line-height:1.7;margin-bottom:20px;">Tu cherches un partenaire pour ce soir ? Tape ton code postal, rejoins le canal local et organise une session en quelques messages. Le canal expire après 24h — gardant tout frais et local.</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#888;">
+            <div style="width:20px;height:20px;background:#C9A84C15;border:0.5px solid #C9A84C33;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;">✓</div>
+            Canal géo-filtré automatiquement (10 km)
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#888;">
+            <div style="width:20px;height:20px;background:#C9A84C15;border:0.5px solid #C9A84C33;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;">✓</div>
+            Mentions de spots cliquables dans le chat
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:#888;">
+            <div style="width:20px;height:20px;background:#C9A84C15;border:0.5px solid #C9A84C33;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;">✓</div>
+            Crée un événement directement depuis le chat
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini chat preview -->
+      <div style="flex:1;background:#161616;border:0.5px solid #222;border-radius:14px;overflow:hidden;max-width:320px;">
+        <div style="padding:10px 13px;border-bottom:0.5px solid #1e1e1e;display:flex;align-items:center;gap:7px;">
+          <div class="online-dot"></div>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:#ccc;">Canal · Cachan 94230</div>
+            <div style="font-size:10px;color:#3a3a3a;">24 sportifs dans 10 km</div>
+          </div>
+          <div style="margin-left:auto;font-size:9px;color:#C9A84C66;background:#C9A84C08;padding:2px 7px;border-radius:4px;border:0.5px solid #C9A84C15;">⏱ 18h restantes</div>
+        </div>
+        <div style="padding:10px 11px;display:flex;flex-direction:column;gap:8px;">
+          <div class="cmsg">
+            <div class="cmsg-av" style="background:#12122a;color:#7b8fff;">K</div>
+            <div><div class="cmsg-name">Kevin · 0.4 km</div><div class="cmsg-text">Dispo ce soir au <span class="cmsg-mention">⚽ Léon Blum</span> ?</div></div>
+          </div>
+          <div class="cmsg">
+            <div class="cmsg-av" style="background:#142014;color:#5a9e6a;">S</div>
+            <div><div class="cmsg-name">Sara · 1.2 km</div><div class="cmsg-text">Moi ! Je ramène 2 amis 🙌</div></div>
+          </div>
+          <div class="cmsg" style="flex-direction:row-reverse;">
+            <div class="cmsg-av" style="background:#C9A84C18;color:#C9A84C;">M</div>
+            <div style="text-align:right;">
+              <div class="cmsg-name">Vous</div>
+              <div class="cmsg-text" style="background:#C9A84C12;border-color:#C9A84C22;color:#dcc878;border-radius:7px 2px 7px 7px;">Je suis partant 🔥</div>
+            </div>
+          </div>
+          <div class="cmsg">
+            <div class="cmsg-av" style="background:#12122a;color:#7b8fff;">K</div>
+            <div><div class="cmsg-name">Kevin · 0.4 km</div><div class="cmsg-text">Événement créé → <span class="cmsg-mention">🎯 5v5 Sam 15h</span></div></div>
+          </div>
+        </div>
+        <div style="padding:8px 10px;border-top:0.5px solid #1a1a1a;display:flex;gap:6px;">
+          <div style="flex:1;background:#1a1a1a;border:0.5px solid #222;border-radius:7px;padding:6px 9px;font-size:11px;color:#333;">Message dans le canal...</div>
+          <div style="width:28px;height:28px;background:#C9A84C;border-radius:7px;display:flex;align-items:center;justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <div class="pricing">
+    <div class="section-label">Tarifs</div>
+    <div class="section-title" style="font-size:28px;margin-bottom:6px;">Simple et transparent</div>
+    <div style="font-size:13px;color:#484848;">Commence gratuitement. Passe en premium quand tu veux.</div>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">Gratuit</div>
+        <div class="plan-price">0€ <span>/ toujours</span></div>
+        <div class="plan-desc">L'essentiel pour trouver un spot et jouer avec ta communauté locale.</div>
+        <div class="plan-feat">
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Accès à tous les spots</div>
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Canal communautaire local</div>
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Créer 1 événement / semaine</div>
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Publicités discrètes</div>
+        </div>
+        <button class="plan-btn free">Commencer gratuitement</button>
+      </div>
+
+      <div class="plan featured">
+        <div class="plan-badge">⚡ Premium</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">4,99€ <span>/ mois</span></div>
+        <div class="plan-desc">Pour les sportifs réguliers qui veulent aller plus loin.</div>
+        <div class="plan-feat">
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Tout ce qui est gratuit</div>
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Événements illimités</div>
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Stats & historique complet</div>
+          <div class="plan-feat-item"><div class="plan-check"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Zéro publicité</div>
+        </div>
+        <button class="plan-btn gold">Passer en Premium</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA FINAL -->
+  <div class="cta-final">
+    <div class="cta-bg"></div>
+    <div class="hero-label" style="margin-bottom:16px;"><div class="label-dot"></div>Rejoins la communauté</div>
+    <div class="cta-title">Prêt à jouer ?</div>
+    <div class="cta-sub">Trouve ton premier spot en 30 secondes. C'est gratuit, toujours.</div>
+    <button class="btn-hero" onclick="sendPrompt('Je veux créer mon compte YSport')">Trouver un spot maintenant →</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-logo"><div class="footer-dot"></div>YSport</div>
+    <div class="footer-links">
+      <div class="footer-link">À propos</div>
+      <div class="footer-link">Confidentialité</div>
+      <div class="footer-link">CGU</div>
+      <div class="footer-link">Contact</div>
+    </div>
+    <div style="font-size:11px;color:#2a2a2a;">© 2026 YSport</div>
+  </div>
+
+</div>

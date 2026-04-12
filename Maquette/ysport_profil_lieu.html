@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YSport — Profil & Fiche Lieu</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --gold: #C9A84C;
+  --gold-dim: #C9A84C22;
+  --gold-border: #C9A84C33;
+  --bg: #0e0e0e;
+  --bg2: #141414;
+  --bg3: #191919;
+  --bg4: #1e1e1e;
+  --border: #222;
+  --border2: #2a2a2a;
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #484848;
+  --green: #5a9e6a;
+  --red: #d05050;
+  --blue: #7b8fff;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #080808;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+
+.shell {
+  width: 100%; max-width: 420px;
+  background: var(--bg);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 0.5px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 24px);
+  position: relative;
+}
+
+/* ── NAV ── */
+.nav {
+  height: 50px;
+  background: var(--bg2);
+  border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 10px;
+  flex-shrink: 0;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 800; color: #fff;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+.nav-back {
+  width: 28px; height: 28px; border-radius: 7px;
+  border: 0.5px solid var(--border2); background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 14px;
+  transition: all 0.15s;
+}
+.nav-back:hover { border-color: var(--gold-border); color: var(--gold); }
+.nav-title { font-size: 13px; font-weight: 500; color: var(--text2); }
+.nav-right { margin-left: auto; display: flex; gap: 7px; }
+.nav-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  border: 0.5px solid var(--border2); background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text3); transition: all 0.15s;
+}
+.nav-icon:hover { border-color: var(--gold-border); color: var(--gold); }
+
+/* ── PAGES ── */
+.page { display: none; flex-direction: column; flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.page.active { display: flex; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  height: 56px;
+  background: var(--bg2);
+  border-top: 0.5px solid var(--border);
+  display: flex; align-items: center;
+  flex-shrink: 0;
+  position: sticky; bottom: 0; z-index: 100;
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  cursor: pointer; padding: 6px 4px;
+  color: var(--text3); font-size: 9px; transition: color 0.15s;
+}
+.bnav-item.on { color: var(--gold); }
+.bnav-item svg { flex-shrink: 0; }
+
+/* ══════════════════════════
+   PAGE PROFIL
+══════════════════════════ */
+
+/* Hero profil */
+.profile-hero {
+  position: relative;
+  background: linear-gradient(160deg, #1c1809 0%, var(--bg) 60%);
+  padding: 24px 16px 0;
+  border-bottom: 0.5px solid #1a1a1a;
+  overflow: hidden;
+}
+
+/* Deco background circles */
+.profile-hero::before {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  top: -60px; right: -40px;
+  pointer-events: none;
+}
+.profile-hero::after {
+  content: '';
+  position: absolute;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  top: -20px; right: 20px;
+  pointer-events: none;
+}
+
+.profile-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; position: relative; z-index: 1; }
+
+.avatar-wrap { position: relative; flex-shrink: 0; }
+.avatar-ring {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: conic-gradient(var(--gold) 68%, #2a2a2a 68%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 3px;
+}
+.avatar-inner {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: #1a1709;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 24px; font-weight: 800; color: var(--gold);
+}
+.level-badge {
+  position: absolute; bottom: -4px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold); border-radius: 8px;
+  padding: 2px 7px; font-size: 8px; font-weight: 700;
+  color: #111; white-space: nowrap;
+  border: 1.5px solid var(--bg);
+}
+
+.profile-info { flex: 1; padding-top: 4px; }
+.profile-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800; color: #fff;
+  margin-bottom: 2px; line-height: 1.1;
+}
+.profile-handle { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.profile-loc {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text3);
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 6px; padding: 3px 8px; margin-bottom: 10px;
+}
+
+.geo-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--green);
+  background: #122012; border: 0.5px solid #5a9e6a30;
+  border-radius: 6px; padding: 3px 8px;
+  margin-left: 4px;
+}
+.geo-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+/* EDIT BTN */
+.edit-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: 0.5px solid var(--border2);
+  border-radius: 8px; padding: 6px 14px;
+  font-size: 11px; color: var(--text2);
+  cursor: pointer; font-family: inherit;
+  transition: all 0.15s; margin-bottom: 16px;
+  width: 100%; justify-content: center;
+}
+.edit-btn:hover { border-color: var(--gold-border); color: var(--gold); }
+
+/* LEVEL BAR */
+.level-section { padding: 0 16px 14px; }
+.level-top { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); margin-bottom: 5px; }
+.level-top b { color: var(--gold); }
+.lbar { height: 5px; background: var(--bg4); border-radius: 5px; overflow: hidden; }
+.lbar-fill { height: 100%; background: linear-gradient(90deg, #C9A84C, #e8c96a); border-radius: 5px; width: 68%; transition: width 1s ease; }
+.level-hint { font-size: 10px; color: var(--text3); margin-top: 4px; }
+.level-hint b { color: var(--text2); }
+
+/* STATS */
+.stats-strip {
+  display: flex;
+  border-bottom: 0.5px solid #1a1a1a;
+  border-top: 0.5px solid #1a1a1a;
+}
+.stat-box { flex: 1; padding: 14px 8px; text-align: center; border-right: 0.5px solid #1a1a1a; }
+.stat-box:last-child { border-right: none; }
+.stat-n {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--gold);
+  letter-spacing: -0.5px;
+}
+.stat-l { font-size: 9px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* SECTIONS */
+.section { padding: 16px 16px 0; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-title { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+.see-all { font-size: 10px; color: var(--gold); cursor: pointer; }
+
+/* BADGES */
+.badges-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 14px; scrollbar-width: none; }
+.badges-scroll::-webkit-scrollbar { display: none; }
+.badge-card {
+  flex-shrink: 0; width: 72px; text-align: center;
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 10px 6px 8px;
+  transition: border-color 0.15s; cursor: pointer;
+}
+.badge-card:hover { border-color: var(--gold-border); }
+.badge-card.earned { border-color: var(--gold-border); background: #1a1709; }
+.badge-card.locked { opacity: 0.4; }
+.badge-ico { font-size: 22px; display: block; margin-bottom: 5px; }
+.badge-name { font-size: 9px; color: var(--text3); line-height: 1.3; }
+.badge-card.earned .badge-name { color: var(--text2); }
+
+/* Discipline badges */
+.disc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding-bottom: 14px; }
+.disc-card {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 10px 12px;
+}
+.disc-card.active { border-color: var(--gold-border); background: #1a1709; }
+.disc-top { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+.disc-ico { font-size: 16px; }
+.disc-name { font-size: 11px; font-weight: 500; color: var(--text); }
+.disc-level { font-size: 9px; color: var(--gold); margin-top: 1px; }
+.disc-bar { height: 3px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+.disc-fill { height: 100%; border-radius: 3px; }
+.disc-tip { font-size: 9px; color: var(--text3); margin-top: 4px; line-height: 1.4; }
+
+/* ACTIVITY */
+.act-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 20px; }
+.act-card {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.act-ico {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.act-title { font-size: 12px; font-weight: 500; color: #ddd; }
+.act-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.act-pts { margin-left: auto; text-align: right; flex-shrink: 0; }
+.act-pts-n { font-size: 13px; font-weight: 700; color: var(--gold); }
+.act-pts-l { font-size: 9px; color: var(--text3); }
+
+/* ══════════════════════════
+   PAGE FICHE LIEU
+══════════════════════════ */
+
+/* GALERIE */
+.gallery {
+  position: relative;
+  height: 200px;
+  background: var(--bg3);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.gallery-slides { display: flex; height: 100%; transition: transform 0.35s ease; }
+.gallery-slide {
+  min-width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.gallery-slide::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, #0e0e0ecc 100%);
+}
+.slide-bg { position: absolute; inset: 0; }
+
+.gallery-dots {
+  position: absolute; bottom: 10px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 10;
+}
+.gdot { width: 5px; height: 5px; border-radius: 50%; background: #ffffff40; transition: background 0.2s; }
+.gdot.on { background: var(--gold); width: 16px; border-radius: 3px; }
+
+.gallery-arrows {
+  position: absolute; top: 50%; width: 100%;
+  display: flex; justify-content: space-between;
+  padding: 0 10px; transform: translateY(-50%);
+  z-index: 10; pointer-events: none;
+}
+.garrow {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #000000aa; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: all; color: #fff; font-size: 12px;
+  transition: background 0.15s;
+}
+.garrow:hover { background: #000000cc; }
+
+.gallery-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 10;
+  background: var(--gold); border-radius: 7px;
+  padding: 3px 10px; font-size: 10px; font-weight: 700; color: #111;
+}
+
+/* LIEU INFO */
+.lieu-hero {
+  padding: 14px 16px;
+  border-bottom: 0.5px solid #1a1a1a;
+}
+.lieu-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 800; color: #fff;
+  margin-bottom: 4px; line-height: 1.1;
+}
+.lieu-type { font-size: 12px; color: var(--text3); margin-bottom: 10px; }
+
+.lieu-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.ltag {
+  font-size: 10px; padding: 3px 9px; border-radius: 20px;
+  border: 0.5px solid var(--border2); color: var(--text2);
+  background: var(--bg3);
+}
+.ltag.gold { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold); }
+.ltag.green { background: #122012; border-color: #5a9e6a30; color: var(--green); }
+.ltag.live { background: #1f1111; border-color: #d0505030; color: var(--red); display: flex; align-items: center; gap: 4px; }
+.live-d { width: 5px; height: 5px; background: var(--red); border-radius: 50%; animation: pulse 1.2s infinite; }
+
+.lieu-rating {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.rating-big {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800; color: var(--gold);
+}
+.rating-stars { display: flex; flex-direction: column; gap: 2px; }
+.stars-row { color: var(--gold); font-size: 13px; letter-spacing: -1px; }
+.rating-count { font-size: 10px; color: var(--text3); }
+
+.lieu-geo-status {
+  display: flex; align-items: center; gap: 7px;
+  background: #0f1f0f; border: 0.5px solid #5a9e6a30;
+  border-radius: 9px; padding: 8px 12px; margin-bottom: 0;
+  font-size: 11px; color: var(--green);
+}
+.lieu-geo-sub { font-size: 10px; color: #5a9e6a80; margin-top: 1px; }
+
+/* STATS LIEU */
+.lieu-stats {
+  display: flex;
+  border-bottom: 0.5px solid #1a1a1a;
+  border-top: 0.5px solid #1a1a1a;
+}
+.lstat { flex: 1; padding: 12px 8px; text-align: center; border-right: 0.5px solid #1a1a1a; }
+.lstat:last-child { border-right: none; }
+.lstat-n { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--gold); }
+.lstat-l { font-size: 9px; color: var(--text3); margin-top: 1px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ACTIONS */
+.lieu-actions {
+  display: flex; gap: 8px; padding: 12px 16px;
+  border-bottom: 0.5px solid #1a1a1a;
+}
+.action-btn {
+  flex: 1; padding: 10px 8px; border-radius: 9px;
+  font-size: 11px; font-weight: 600; font-family: inherit;
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 5px; transition: all 0.15s;
+  border: 0.5px solid var(--gold); background: var(--gold); color: #111;
+}
+.action-btn.ghost { background: transparent; border-color: var(--border2); color: var(--text2); }
+.action-btn.ghost:hover { border-color: var(--gold-border); color: var(--gold); }
+.action-btn:hover { background: #d4af5a; }
+
+/* HORAIRES AFFLUENCE */
+.affluence-section { padding: 16px 16px 0; }
+.aff-bars { display: flex; gap: 4px; align-items: flex-end; height: 56px; margin-bottom: 6px; }
+.aff-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.aff-bar {
+  width: 100%; border-radius: 3px 3px 0 0;
+  background: var(--bg4); position: relative; overflow: hidden;
+  transition: background 0.15s;
+}
+.aff-bar.now { background: var(--gold-dim); border: 0.5px solid var(--gold-border); }
+.aff-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 3px 3px 0 0; }
+.aff-label { font-size: 8px; color: var(--text3); }
+.aff-label.now { color: var(--gold); }
+.aff-legend { display: flex; gap: 12px; font-size: 9px; color: var(--text3); }
+.aff-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+/* EVENTS sur ce lieu */
+.event-list { display: flex; flex-direction: column; gap: 7px; padding-bottom: 6px; }
+.ev-card {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 10px 12px;
+}
+.ev-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.ev-name { font-size: 12px; font-weight: 500; color: #ddd; }
+.ev-bdg { font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+.ev-bdg.auto { background: #1a0f00; color: #d08040; border: 0.5px solid #d0804030; }
+.ev-bdg.live { background: #1f1111; color: var(--red); border: 0.5px solid #d0505030; display: flex; align-items: center; gap: 3px; }
+.ev-meta { font-size: 10px; color: var(--text3); }
+.ev-join { margin-top:8px; padding-top:8px; border-top:0.5px solid #1e1e1e; display:flex; justify-content:flex-end; }
+
+/* AVIS */
+.avis-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
+.avis-card {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 10px; padding: 11px 12px;
+}
+.avis-top { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.avis-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.avis-name { font-size: 11px; font-weight: 500; color: #ddd; }
+.avis-date { font-size: 9px; color: var(--text3); }
+.avis-stars { margin-left: auto; color: var(--gold); font-size: 11px; letter-spacing: -1px; }
+.avis-text { font-size: 11px; color: var(--text2); line-height: 1.6; }
+.avis-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--gold-dim); color: var(--gold);
+  border: 0.5px solid var(--gold-border);
+  border-radius: 4px; font-size: 9px; padding: 2px 6px; margin-top: 6px;
+}
+
+/* WRITE AVIS BTN */
+.write-avis {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg3); border: 0.5px dashed var(--border2);
+  border-radius: 10px; padding: 11px 12px;
+  cursor: pointer; transition: border-color 0.15s;
+  font-size: 11px; color: var(--text3);
+}
+.write-avis:hover { border-color: var(--gold-border); color: var(--gold); }
+
+/* UTILS */
+.sep { height: 0.5px; background: #1a1a1a; margin: 0 16px; }
+.pb { padding-bottom: 14px; }
+
+.btn-sm {
+  font-size: 10px; padding: 4px 11px; border-radius: 6px;
+  border: 0.5px solid var(--gold); background: transparent;
+  color: var(--gold); cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-sm:hover { background: var(--gold); color: #111; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- NAV dynamique -->
+  <div class="nav" id="mainNav">
+    <div class="nav-logo"><div class="nav-dot"></div>YSport</div>
+    <div class="nav-right">
+      <div class="nav-icon" id="settingsBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PAGE PROFIL ══════════════ -->
+  <div class="page active" id="page-profil">
+
+    <div class="profile-hero">
+      <div class="profile-top">
+        <div class="avatar-wrap">
+          <div class="avatar-ring">
+            <div class="avatar-inner">M</div>
+          </div>
+          <div class="level-badge">⚡ Confirmé</div>
+        </div>
+        <div class="profile-info">
+          <div class="profile-name">Manu Yao</div>
+          <div class="profile-handle">@manuyao</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div class="profile-loc">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>
+              Paris 11e
+            </div>
+            <div class="geo-status">
+              <div class="geo-dot"></div>
+              Actif · Léon Blum
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="edit-btn" onclick="alert('Modifier le profil — bientôt disponible 🔧')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Modifier le profil
+      </button>
+    </div>
+
+    <div class="level-section">
+      <div class="level-top">
+        <span>Niveau Confirmé</span>
+        <b>1 840 / 2 500 pts → Elite</b>
+      </div>
+      <div class="lbar"><div class="lbar-fill"></div></div>
+      <div class="level-hint">Encore <b>660 pts</b> pour atteindre Elite 👑</div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-box"><div class="stat-n">47</div><div class="stat-l">Sessions</div></div>
+      <div class="stat-box"><div class="stat-n">12</div><div class="stat-l">Événements</div></div>
+      <div class="stat-box"><div class="stat-n">1 840</div><div class="stat-l">Points</div></div>
+      <div class="stat-box"><div class="stat-n">8</div><div class="stat-l">Badges</div></div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Badges</div>
+        <div class="see-all">Voir tout</div>
+      </div>
+      <div class="badges-scroll">
+        <div class="badge-card earned"><span class="badge-ico">🏆</span><div class="badge-name">Organisateur</div></div>
+        <div class="badge-card earned"><span class="badge-ico">🔥</span><div class="badge-name">7j de suite</div></div>
+        <div class="badge-card earned"><span class="badge-ico">⚡</span><div class="badge-name">HIIT Master</div></div>
+        <div class="badge-card earned"><span class="badge-ico">🏃</span><div class="badge-name">Runner</div></div>
+        <div class="badge-card earned"><span class="badge-ico">🎯</span><div class="badge-name">10 events</div></div>
+        <div class="badge-card locked"><span class="badge-ico">👑</span><div class="badge-name">Elite</div></div>
+        <div class="badge-card locked"><span class="badge-ico">🌍</span><div class="badge-name">5 villes</div></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- PROGRESSION PAR DISCIPLINE -->
+    <div class="section" style="padding-top:14px;">
+      <div class="section-header">
+        <div class="section-title">Progression par discipline</div>
+      </div>
+      <div class="disc-grid">
+        <div class="disc-card active">
+          <div class="disc-top">
+            <div class="disc-ico">🏋️</div>
+            <div><div class="disc-name">Muscu</div><div class="disc-level">Intermédiaire</div></div>
+          </div>
+          <div class="disc-bar"><div class="disc-fill" style="width:60%;background:linear-gradient(90deg,#C9A84C,#e8c96a);"></div></div>
+          <div class="disc-tip">💡 Ajoute 1 session dos pour passer Avancé</div>
+        </div>
+        <div class="disc-card">
+          <div class="disc-top">
+            <div class="disc-ico">🎾</div>
+            <div><div class="disc-name">Tennis</div><div class="disc-level">Débutant</div></div>
+          </div>
+          <div class="disc-bar"><div class="disc-fill" style="width:25%;background:linear-gradient(90deg,#7b8fff,#a0a8ff);"></div></div>
+          <div class="disc-tip">💡 Essaie un double pour débloquer Régulier</div>
+        </div>
+        <div class="disc-card">
+          <div class="disc-top">
+            <div class="disc-ico">🏃</div>
+            <div><div class="disc-name">Running</div><div class="disc-level">Confirmé</div></div>
+          </div>
+          <div class="disc-bar"><div class="disc-fill" style="width:78%;background:linear-gradient(90deg,#5a9e6a,#7dc98a);"></div></div>
+          <div class="disc-tip">💡 Passe à 3 sorties/sem pour atteindre Elite</div>
+        </div>
+        <div class="disc-card">
+          <div class="disc-top">
+            <div class="disc-ico">🏊</div>
+            <div><div class="disc-name">Natation</div><div class="disc-level">Débutant</div></div>
+          </div>
+          <div class="disc-bar"><div class="disc-fill" style="width:20%;background:linear-gradient(90deg,#7b8fff,#a0a8ff);"></div></div>
+          <div class="disc-tip">💡 Nage 3x/sem pour débloquer Nage Confirmé</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- ACTIVITÉ -->
+    <div class="section pb" style="padding-top:14px;">
+      <div class="section-header">
+        <div class="section-title">Activité récente</div>
+        <div class="see-all" onclick="goPage('page-lieu')">Voir lieu →</div>
+      </div>
+      <div class="act-list">
+        <div class="act-card">
+          <div class="act-ico" style="background:#C9A84C15;">🔥</div>
+          <div><div class="act-title">TABATA · 8 rounds</div><div class="act-sub">Stade Léon Blum · il y a 2h</div></div>
+          <div class="act-pts"><div class="act-pts-n">+45</div><div class="act-pts-l">pts</div></div>
+        </div>
+        <div class="act-card">
+          <div class="act-ico" style="background:#12122a;">🎯</div>
+          <div><div class="act-title">Tournoi 5v5 organisé</div><div class="act-sub">Jean Moulin · hier</div></div>
+          <div class="act-pts"><div class="act-pts-n">+120</div><div class="act-pts-l">pts</div></div>
+        </div>
+        <div class="act-card">
+          <div class="act-ico" style="background:#142014;">🏃</div>
+          <div><div class="act-title">AMRAP · 20 min</div><div class="act-sub">Vincennes · il y a 3j</div></div>
+          <div class="act-pts"><div class="act-pts-n">+30</div><div class="act-pts-l">pts</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ PAGE FICHE LIEU ══════════════ -->
+  <div class="page" id="page-lieu">
+
+    <!-- GALERIE -->
+    <div class="gallery">
+      <div class="gallery-slides" id="gallerySlides">
+        <div class="gallery-slide">
+          <div class="slide-bg" style="background:linear-gradient(135deg,#1a2a0a,#0a1a0a);"></div>
+          <span style="position:relative;z-index:1;font-size:60px;">⚽</span>
+        </div>
+        <div class="gallery-slide">
+          <div class="slide-bg" style="background:linear-gradient(135deg,#0a1a2a,#0a0a2a);"></div>
+          <span style="position:relative;z-index:1;font-size:60px;">🏟️</span>
+        </div>
+        <div class="gallery-slide">
+          <div class="slide-bg" style="background:linear-gradient(135deg,#2a1a0a,#1a0a0a);"></div>
+          <span style="position:relative;z-index:1;font-size:60px;">🌙</span>
+        </div>
+      </div>
+      <div class="gallery-badge">Gratuit</div>
+      <div class="gallery-arrows">
+        <div class="garrow" onclick="prevSlide()">‹</div>
+        <div class="garrow" onclick="nextSlide()">›</div>
+      </div>
+      <div class="gallery-dots" id="galleryDots">
+        <div class="gdot on"></div>
+        <div class="gdot"></div>
+        <div class="gdot"></div>
+      </div>
+    </div>
+
+    <!-- INFO LIEU -->
+    <div class="lieu-hero">
+      <div class="lieu-name">Stade Léon Blum</div>
+      <div class="lieu-type">Terrain de football · Extérieur · Paris 11e</div>
+
+      <div class="lieu-tags">
+        <div class="ltag green">Gratuit</div>
+        <div class="ltag live"><div class="live-d"></div>24 joueurs actifs</div>
+        <div class="ltag">Éclairé la nuit</div>
+        <div class="ltag">Vestiaires</div>
+        <div class="ltag">Gazon synthétique</div>
+      </div>
+
+      <div class="lieu-rating">
+        <div class="rating-big">4.2</div>
+        <div class="rating-stars">
+          <div class="stars-row">★★★★☆</div>
+          <div class="rating-count">128 avis · 47 visites ce mois</div>
+        </div>
+      </div>
+
+      <!-- Géoloc automatique -->
+      <div class="lieu-geo-status">
+        <div class="geo-dot"></div>
+        <div>
+          <div>Tu es détecté dans cette zone</div>
+          <div class="lieu-geo-sub">Marqué actif ici · expire dans 1h08</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS LIEU -->
+    <div class="lieu-stats">
+      <div class="lstat"><div class="lstat-n">2</div><div class="lstat-l">Terrains</div></div>
+      <div class="lstat"><div class="lstat-n">24</div><div class="lstat-l">Actifs</div></div>
+      <div class="lstat"><div class="lstat-n">3</div><div class="lstat-l">Events</div></div>
+      <div class="lstat"><div class="lstat-n">0.4 km</div><div class="lstat-l">De toi</div></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="lieu-actions">
+      <button class="action-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+        Créer un événement
+      </button>
+      <button class="action-btn ghost">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Itinéraire
+      </button>
+      <button class="action-btn ghost">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Partager
+      </button>
+    </div>
+
+    <!-- AFFLUENCE -->
+    <div class="affluence-section">
+      <div class="section-header" style="margin-bottom:10px;">
+        <div class="section-title">Affluence habituelle</div>
+        <div style="font-size:9px;color:var(--text3);">Aujourd'hui · Samedi</div>
+      </div>
+      <div class="aff-bars" id="affBars"></div>
+      <div class="aff-legend">
+        <span><span class="aff-dot" style="background:#C9A84C55;"></span>Calme</span>
+        <span><span class="aff-dot" style="background:#C9A84C88;"></span>Modéré</span>
+        <span><span class="aff-dot" style="background:#C9A84C;"></span>Intense</span>
+        <span style="color:var(--gold);"><span class="aff-dot" style="background:var(--gold);border:1px solid var(--gold);"></span>Maintenant</span>
+      </div>
+    </div>
+
+    <div class="sep" style="margin-top:14px;"></div>
+
+    <!-- EVENTS SUR CE LIEU -->
+    <div class="section" style="padding-top:14px;">
+      <div class="section-header">
+        <div class="section-title">Événements ici</div>
+        <div class="see-all">Voir tout</div>
+      </div>
+      <div class="event-list pb">
+        <div class="ev-card">
+          <div class="ev-top">
+            <div class="ev-name">🤖 Défi AMRAP communautaire</div>
+            <div class="ev-bdg auto">Auto</div>
+          </div>
+          <div class="ev-meta">Lancé · 6 participants · 🏆 Marc · 12 rounds</div>
+          <div class="ev-join"><button class="btn-sm">Rejoindre</button></div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-top">
+            <div class="ev-name">Tournoi 5v5 Foot</div>
+            <div class="ev-bdg live"><div class="live-d"></div>Sam 15h</div>
+          </div>
+          <div class="ev-meta">Kevin M. · 6/10 inscrits · Dans 2h</div>
+          <div class="ev-join"><button class="btn-sm">Rejoindre</button></div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-top">
+            <div class="ev-name">🤖 Kevin · habitué mardi 19h</div>
+            <div class="ev-bdg auto">Auto</div>
+          </div>
+          <div class="ev-meta">Récurrent · 2 confirmés cette semaine</div>
+          <div class="ev-join"><button class="btn-sm">Rejoindre</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- AVIS -->
+    <div class="section" style="padding-top:14px;">
+      <div class="section-header">
+        <div class="section-title">Avis · 128</div>
+        <div class="see-all">Filtrer</div>
+      </div>
+      <div class="avis-list">
+        <div class="write-avis">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Laisser un avis sur ce lieu...
+        </div>
+        <div class="avis-card">
+          <div class="avis-top">
+            <div class="avis-av" style="background:#12122a;color:#7b8fff;">K</div>
+            <div><div class="avis-name">Kevin M.</div><div class="avis-date">Il y a 3 jours · ⚡ Confirmé</div></div>
+            <div class="avis-stars">★★★★★</div>
+          </div>
+          <div class="avis-text">Terrain toujours bien entretenu, éclairage nickel le soir. J'y viens tous les mardis depuis 6 mois, vraiment top pour organiser des matchs via YSport.</div>
+          <div class="avis-tag">⚽ Foot</div>
+        </div>
+        <div class="avis-card">
+          <div class="avis-top">
+            <div class="avis-av" style="background:#142014;color:#5a9e6a;">S</div>
+            <div><div class="avis-name">Sara L.</div><div class="avis-date">Il y a 1 semaine · 🔥 Junior</div></div>
+            <div class="avis-stars">★★★★☆</div>
+          </div>
+          <div class="avis-text">Super endroit, beaucoup de monde le weekend. Les vestiaires pourraient être mieux entretenus mais le terrain lui-même est excellent.</div>
+          <div class="avis-tag">🏋️ Workout</div>
+        </div>
+        <div class="avis-card">
+          <div class="avis-top">
+            <div class="avis-av" style="background:#1f1212;color:#d05050;">M</div>
+            <div><div class="avis-name">Marc D.</div><div class="avis-date">Il y a 2 semaines · 👑 Elite</div></div>
+            <div class="avis-stars">★★★★☆</div>
+          </div>
+          <div class="avis-text">L'AMRAP communautaire lancé hier était dingue, on était 8 à se challenger en même temps. C'est ça YSport 🔥</div>
+          <div class="avis-tag">🤖 Event auto</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="bnav-item on" onclick="goPage('page-profil', this)" id="bnav-profil">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </div>
+    <div class="bnav-item" onclick="goPage('page-lieu', this)" id="bnav-lieu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Fiche lieu
+    </div>
+    <div class="bnav-item" onclick="alert('Timer — bientôt')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Timer
+    </div>
+    <div class="bnav-item" onclick="alert('Map — bientôt')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Carte
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── PAGE NAV ──
+function goPage(pageId, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('on'));
+  if (el) el.classList.add('on');
+  // Scroll haut
+  document.getElementById(pageId).scrollTop = 0;
+}
+
+// ── GALERIE ──
+let slideIdx = 0;
+const totalSlides = 3;
+
+function updateGallery() {
+  document.getElementById('gallerySlides').style.transform = `translateX(-${slideIdx * 100}%)`;
+  document.querySelectorAll('.gdot').forEach((d, i) => d.classList.toggle('on', i === slideIdx));
+}
+function nextSlide() { slideIdx = (slideIdx + 1) % totalSlides; updateGallery(); }
+function prevSlide() { slideIdx = (slideIdx - 1 + totalSlides) % totalSlides; updateGallery(); }
+setInterval(nextSlide, 4000);
+
+// ── AFFLUENCE BARS ──
+const hours   = ['6h','8h','10h','12h','14h','16h','18h','20h','22h'];
+const levels  = [15, 30, 45, 70, 55, 40, 85, 90, 60];
+const nowHour = 18; // simulation : 18h = maintenant
+const nowIdx  = hours.indexOf(nowHour+'h'); // index 6
+
+const affContainer = document.getElementById('affBars');
+hours.forEach((h, i) => {
+  const pct = levels[i];
+  const isNow = i === 6;
+  const color = pct > 70 ? '#C9A84C' : pct > 40 ? '#C9A84C88' : '#C9A84C55';
+
+  const col = document.createElement('div');
+  col.className = 'aff-col';
+  col.innerHTML = `
+    <div class="aff-bar${isNow?' now':''}" style="height:${Math.round(pct*0.5)+4}px;">
+      <div class="aff-bar-fill" style="height:${pct}%;background:${isNow?'#C9A84C':color};"></div>
+    </div>
+    <div class="aff-label${isNow?' now':''}">${h}</div>
+  `;
+  affContainer.appendChild(col);
+});
+</script>
+</body>
+</html>

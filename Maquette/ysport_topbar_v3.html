@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YSport — Topbar V3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --gold: #C9A84C;
+  --gold2: #E8C96A;
+  --gold-dim: #C9A84C12;
+  --gold-border: #C9A84C28;
+  --green: #5a9e6a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #050505;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  gap: 14px;
+}
+
+/* ── Fond carte réaliste ── */
+.map-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: #1c1c1e;
+}
+.map-bg svg { width: 100%; height: 100%; opacity: 0.85; }
+.map-bg::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #C9A84C14 0%, transparent 65%);
+  top: 30px; left: 28%;
+  pointer-events: none;
+}
+
+.demo-label {
+  position: relative; z-index: 10;
+  font-size: 9px; color: #2e2e2e;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  margin-top: 6px; width: 100%; max-width: 700px;
+  padding: 0 4px;
+}
+
+/* ══════════════════════════════
+   TOPBAR
+══════════════════════════════ */
+.topbar-wrap {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 700px;
+  padding: 0 4px;
+}
+
+.topbar {
+  /* Plus translucide — la carte respire */
+  background: rgba(8, 8, 8, 0.48);
+  backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+
+  /* Bordure très fine, quasi invisible */
+  border: 0.5px solid rgba(255, 255, 255, 0.055);
+
+  /* Reflet top subtil + ombre portée légère */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 0 0 0.5px rgba(0, 0, 0, 0.4),
+    0 6px 24px rgba(0, 0, 0, 0.35);
+
+  border-radius: 16px;
+  height: 54px;
+  display: flex; align-items: center;
+  padding: 0 14px; gap: 11px;
+}
+
+/* LOGO */
+.tb-logo {
+  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+}
+.tb-emblem {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: rgba(201, 168, 76, 0.10);
+  border: 0.5px solid rgba(201, 168, 76, 0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(201,168,76,0.10);
+}
+.tb-wordmark {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 800;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: -0.5px;
+}
+.tb-wordmark em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Séparateur */
+.tb-sep {
+  width: 0.5px; height: 18px;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+/* SEARCH */
+.tb-search {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 8px;
+  /* Encore plus translucide que la barre */
+  background: rgba(255, 255, 255, 0.035);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  height: 34px; padding: 0 11px;
+  cursor: text; transition: all 0.22s;
+}
+.tb-search:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.09);
+}
+.tb-search.focused {
+  background: rgba(201, 168, 76, 0.07);
+  border-color: rgba(201, 168, 76, 0.25);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.06);
+}
+.tb-search-ico { color: #3a3a3a; flex-shrink: 0; transition: color 0.2s; }
+.tb-search.focused .tb-search-ico { color: var(--gold); }
+.tb-search input {
+  background: none; border: none; outline: none;
+  color: rgba(240,240,240,0.9); font-size: 12px;
+  font-family: inherit; width: 100%; min-width: 0;
+}
+.tb-search input::placeholder { color: #3a3a3a; font-weight: 300; }
+
+/* ACTIONS */
+.tb-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+
+/* Zone pill */
+.tb-zone {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(90, 158, 106, 0.10);
+  border: 0.5px solid rgba(90, 158, 106, 0.20);
+  border-radius: 8px; padding: 3px 8px;
+  font-size: 10px; color: rgba(90,158,106,0.9);
+  flex-shrink: 0; white-space: nowrap;
+}
+.zone-dot {
+  width: 5px; height: 5px; background: var(--green);
+  border-radius: 50%; animation: pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+/* Chat btn */
+.tb-chat {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: rgba(255,255,255,0.35);
+  transition: all 0.18s; position: relative;
+}
+.tb-chat:hover {
+  background: rgba(201,168,76,0.08);
+  border-color: rgba(201,168,76,0.22);
+  color: var(--gold);
+}
+.tb-chat.on {
+  background: rgba(201,168,76,0.10);
+  border-color: rgba(201,168,76,0.25);
+  color: var(--gold);
+}
+.chat-pip {
+  position: absolute; top: 7px; right: 7px;
+  width: 6px; height: 6px; background: var(--gold);
+  border-radius: 50%; border: 1.5px solid rgba(8,8,8,0.6);
+  animation: pipPulse 2.4s ease-in-out infinite;
+}
+@keyframes pipPulse {
+  0%,100%{ box-shadow: 0 0 0 0 rgba(201,168,76,0.5); }
+  50%    { box-shadow: 0 0 0 4px rgba(201,168,76,0); }
+}
+
+/* Avatar */
+.tb-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(201,168,76,0.12);
+  border: 1.5px solid rgba(201,168,76,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px; font-weight: 700; color: var(--gold);
+  cursor: pointer; flex-shrink: 0;
+  transition: all 0.18s; position: relative;
+}
+.tb-avatar:hover {
+  border-color: rgba(201,168,76,0.5);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.10);
+}
+.avatar-lvl {
+  position: absolute; bottom: -3px; right: -3px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--gold);
+  border: 1.5px solid rgba(8,8,8,0.8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 6px; font-weight: 700; color: #111;
+}
+
+/* ── Chat panel ── */
+.chat-wrap {
+  width: 100%; max-width: 700px;
+  padding: 0 4px;
+  position: relative; z-index: 10;
+}
+.chat-panel {
+  background: rgba(8, 8, 8, 0.55);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 0.5px solid rgba(255,255,255,0.055);
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  display: none; animation: slideDown 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.chat-panel.open { display: block; }
+@keyframes slideDown {
+  from { opacity:0; transform: translateY(-6px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.ch-header {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; gap: 8px;
+}
+.ch-odot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; }
+.ch-title { font-size: 12px; font-weight: 500; color: rgba(204,204,204,0.9); }
+.ch-sub { font-size: 9px; color: #333; }
+.ch-temp {
+  margin-left: auto; font-size: 9px; color: rgba(201,168,76,0.5);
+  background: rgba(201,168,76,0.06); border: 0.5px solid rgba(201,168,76,0.12);
+  border-radius: 4px; padding: 2px 7px;
+}
+.ch-msgs { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.cm { display: flex; gap: 7px; }
+.cm-av {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700; flex-shrink: 0;
+}
+.cm-name { font-size: 8px; color: #333; margin-bottom: 2px; }
+.cm-txt {
+  background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.06);
+  border-radius: 2px 8px 8px 8px;
+  padding: 5px 9px; font-size: 11px; color: #bbb;
+  line-height: 1.45; display: inline-block;
+}
+.cm-mention { background: #0d0d20; color: #7b8fff; border-radius: 3px; padding: 0 3px; font-size: 10px; }
+.ch-input-row {
+  padding: 8px 12px; border-top: 0.5px solid rgba(255,255,255,0.04);
+  display: flex; gap: 6px;
+}
+.ch-input {
+  flex: 1; background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.07);
+  border-radius: 8px; padding: 7px 10px;
+  color: #f0f0f0; font-size: 11px; font-family: inherit; outline: none;
+  transition: border-color 0.15s;
+}
+.ch-input:focus { border-color: rgba(201,168,76,0.25); }
+.ch-send {
+  width: 28px; height: 28px; background: var(--gold);
+  border: none; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  flex-shrink: 0; transition: background 0.15s;
+}
+.ch-send:hover { background: var(--gold2); }
+
+/* ── Variante mobile ── */
+.topbar.mobile {
+  height: 48px; border-radius: 14px;
+  padding: 0 11px; gap: 9px;
+}
+.topbar.mobile .tb-zone { display: none; }
+.topbar.mobile .tb-chat { width: 30px; height: 30px; border-radius: 9px; }
+.topbar.mobile .tb-avatar { width: 30px; height: 30px; font-size: 11px; }
+.topbar.mobile .tb-search { height: 30px; }
+</style>
+</head>
+<body>
+
+<!-- Fond carte -->
+<div class="map-bg">
+  <svg viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice">
+    <rect width="900" height="620" fill="#1c1c1e"/>
+    <rect x="18" y="14" width="115" height="78" rx="3" fill="#202020"/>
+    <rect x="152" y="9" width="88" height="60" rx="3" fill="#202020"/>
+    <rect x="262" y="16" width="130" height="68" rx="3" fill="#202020"/>
+    <rect x="414" y="10" width="98" height="76" rx="3" fill="#202020"/>
+    <rect x="534" y="12" width="120" height="62" rx="3" fill="#202020"/>
+    <rect x="678" y="8" width="94" height="72" rx="3" fill="#202020"/>
+    <rect x="796" y="14" width="100" height="66" rx="3" fill="#202020"/>
+    <rect x="16" y="136" width="86" height="95" rx="3" fill="#202020"/>
+    <rect x="126" y="125" width="116" height="86" rx="3" fill="#202020"/>
+    <rect x="266" y="134" width="96" height="88" rx="3" fill="#202020"/>
+    <rect x="386" y="128" width="124" height="92" rx="3" fill="#202020"/>
+    <rect x="535" y="134" width="94" height="84" rx="3" fill="#202020"/>
+    <rect x="653" y="126" width="120" height="90" rx="3" fill="#202020"/>
+    <rect x="14" y="272" width="106" height="86" rx="3" fill="#202020"/>
+    <rect x="142" y="262" width="94" height="96" rx="3" fill="#202020"/>
+    <rect x="260" y="270" width="122" height="82" rx="3" fill="#202020"/>
+    <rect x="408" y="264" width="94" height="90" rx="3" fill="#202020"/>
+    <rect x="528" y="270" width="116" height="84" rx="3" fill="#202020"/>
+    <rect x="670" y="262" width="84" height="92" rx="3" fill="#202020"/>
+    <rect x="16" y="402" width="124" height="75" rx="3" fill="#202020"/>
+    <rect x="164" y="408" width="100" height="70" rx="3" fill="#202020"/>
+    <rect x="288" y="400" width="122" height="78" rx="3" fill="#202020"/>
+    <rect x="438" y="404" width="92" height="72" rx="3" fill="#202020"/>
+    <rect x="556" y="398" width="118" height="78" rx="3" fill="#202020"/>
+    <rect x="702" y="402" width="86" height="74" rx="3" fill="#202020"/>
+    <line x1="0" y1="116" x2="900" y2="116" stroke="#252525" stroke-width="11"/>
+    <line x1="0" y1="252" x2="900" y2="252" stroke="#252525" stroke-width="15"/>
+    <line x1="0" y1="392" x2="900" y2="392" stroke="#252525" stroke-width="11"/>
+    <line x1="0" y1="496" x2="900" y2="496" stroke="#252525" stroke-width="8"/>
+    <line x1="136" y1="0" x2="136" y2="620" stroke="#252525" stroke-width="11"/>
+    <line x1="258" y1="0" x2="258" y2="620" stroke="#252525" stroke-width="15"/>
+    <line x1="394" y1="0" x2="394" y2="620" stroke="#252525" stroke-width="11"/>
+    <line x1="526" y1="0" x2="526" y2="620" stroke="#252525" stroke-width="8"/>
+    <line x1="656" y1="0" x2="656" y2="620" stroke="#252525" stroke-width="8"/>
+    <line x1="784" y1="0" x2="784" y2="620" stroke="#252525" stroke-width="6"/>
+    <ellipse cx="420" cy="310" rx="55" ry="32" fill="#182018"/>
+    <!-- Pins visibles sous la topbar -->
+    <g transform="translate(420,265)">
+      <rect x="-36" y="-20" width="72" height="18" rx="4" fill="#C9A84C"/>
+      <text x="0" y="-6" text-anchor="middle" font-size="10" fill="#111" font-family="sans-serif" font-weight="700">Léon Blum ⚽</text>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#C9A84C" stroke-width="1.5"/>
+      <circle cx="0" cy="13" r="4" fill="#C9A84C"/>
+    </g>
+    <g transform="translate(600,200)">
+      <rect x="-30" y="-18" width="60" height="17" rx="4" fill="#1e1e22" stroke="#333" stroke-width="0.5"/>
+      <text x="0" y="-5" text-anchor="middle" font-size="9" fill="#aaa" font-family="sans-serif">🏀 Basket</text>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#333" stroke-width="1"/>
+      <circle cx="0" cy="11" r="3.5" fill="#444"/>
+    </g>
+    <g transform="translate(260,320)">
+      <rect x="-28" y="-17" width="56" height="16" rx="4" fill="#0d0d20" stroke="#7b8fff44" stroke-width="0.5"/>
+      <text x="0" y="-5" text-anchor="middle" font-size="9" fill="#7b8fff" font-family="sans-serif">🎯 Event</text>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#7b8fff55" stroke-width="1"/>
+      <circle cx="0" cy="11" r="3.5" fill="#7b8fff"/>
+    </g>
+    <!-- Point utilisateur -->
+    <circle cx="420" cy="310" r="6" fill="#C9A84C" stroke="#1c1c1e" stroke-width="2.5"/>
+    <circle cx="420" cy="310" r="14" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.3"/>
+    <circle cx="420" cy="310" r="22" fill="none" stroke="#C9A84C" stroke-width="0.5" opacity="0.15"/>
+  </svg>
+</div>
+
+<!-- ══ VERSION DESKTOP ══ -->
+<div class="demo-label">Desktop · tablette</div>
+
+<div class="topbar-wrap">
+  <div class="topbar" id="tb1">
+    <div class="tb-logo">
+      <div class="tb-emblem">🏃</div>
+      <div class="tb-wordmark">Y<em>Sport</em></div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-search" id="s1"
+      onclick="this.classList.add('focused')"
+      onfocusout="this.classList.remove('focused')">
+      <svg class="tb-search-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Ville, code postal... ex: Cachan, 94230"
+        onfocus="document.getElementById('s1').classList.add('focused')"
+        onblur="document.getElementById('s1').classList.remove('focused')"/>
+    </div>
+    <div class="tb-actions">
+      <div class="tb-zone"><div class="zone-dot"></div>Paris 11e</div>
+      <div class="tb-chat on" id="chatBtn1" onclick="toggleChat('chatPanel1','chatBtn1')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="chat-pip"></div>
+      </div>
+      <div class="tb-avatar">M<div class="avatar-lvl">⚡</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat panel desktop -->
+<div class="chat-wrap">
+  <div class="chat-panel open" id="chatPanel1">
+    <div class="ch-header">
+      <div class="ch-odot"></div>
+      <div><div class="ch-title">Canal · Paris 11e</div><div class="ch-sub">28 personnes dans 10 km</div></div>
+      <div class="ch-temp">⏱ expire dans 18h</div>
+    </div>
+    <div class="ch-msgs">
+      <div class="cm">
+        <div class="cm-av" style="background:#12122a;color:#7b8fff;">K</div>
+        <div><div class="cm-name">Kevin · 0.4 km</div><div class="cm-txt">Dispo ce soir au <span class="cm-mention">⚽ Léon Blum</span> ?</div></div>
+      </div>
+      <div class="cm">
+        <div class="cm-av" style="background:#142014;color:#5a9e6a;">S</div>
+        <div><div class="cm-name">Sara · 1.2 km</div><div class="cm-txt">Moi ! Je ramène 2 amis 🙌</div></div>
+      </div>
+      <div class="cm" style="flex-direction:row-reverse;">
+        <div class="cm-av" style="background:#C9A84C18;color:#C9A84C;">M</div>
+        <div style="text-align:right;">
+          <div class="cm-name">Vous</div>
+          <div class="cm-txt" style="background:#C9A84C0e;border-color:#C9A84C1a;color:#dcc878;border-radius:7px 2px 7px 7px;">Je suis partant 🔥</div>
+        </div>
+      </div>
+    </div>
+    <div class="ch-input-row">
+      <input class="ch-input" type="text" placeholder="Message dans le canal..."/>
+      <button class="ch-send"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VERSION MOBILE ══ -->
+<div class="demo-label" style="max-width:420px;">Mobile</div>
+
+<div class="topbar-wrap" style="max-width:420px;">
+  <div class="topbar mobile">
+    <div class="tb-logo">
+      <div class="tb-emblem">🏃</div>
+      <div class="tb-wordmark">Y<em>Sport</em></div>
+    </div>
+    <div class="tb-sep"></div>
+    <div class="tb-search" id="s2"
+      onfocus="document.getElementById('s2').classList.add('focused')"
+      onblur="document.getElementById('s2').classList.remove('focused')">
+      <svg class="tb-search-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Chercher un spot..." style="font-size:12px;"
+        onfocus="document.getElementById('s2').classList.add('focused')"
+        onblur="document.getElementById('s2').classList.remove('focused')"/>
+    </div>
+    <div class="tb-actions">
+      <div class="tb-chat on" id="chatBtn2" onclick="toggleChat('chatPanel2','chatBtn2')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="chat-pip"></div>
+      </div>
+      <div class="tb-avatar" style="width:30px;height:30px;font-size:11px;">M<div class="avatar-lvl">⚡</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat panel mobile -->
+<div class="chat-wrap" style="max-width:420px;">
+  <div class="chat-panel" id="chatPanel2">
+    <div class="ch-header">
+      <div class="ch-odot"></div>
+      <div><div class="ch-title">Canal · Paris 11e</div><div class="ch-sub">28 personnes · 10 km</div></div>
+      <div class="ch-temp">⏱ 18h</div>
+    </div>
+    <div class="ch-msgs">
+      <div class="cm">
+        <div class="cm-av" style="background:#12122a;color:#7b8fff;">K</div>
+        <div><div class="cm-name">Kevin · 0.4 km</div><div class="cm-txt">Dispo ce soir au <span class="cm-mention">⚽ Léon Blum</span> ?</div></div>
+      </div>
+      <div class="cm">
+        <div class="cm-av" style="background:#142014;color:#5a9e6a;">S</div>
+        <div><div class="cm-name">Sara · 1.2 km</div><div class="cm-txt">Moi ! Je ramène 2 amis 🙌</div></div>
+      </div>
+    </div>
+    <div class="ch-input-row">
+      <input class="ch-input" type="text" placeholder="Message..."/>
+      <button class="ch-send"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleChat(panelId, btnId) {
+  const panel = document.getElementById(panelId);
+  const btn   = document.getElementById(btnId);
+  panel.classList.toggle('open');
+  btn.classList.toggle('on');
+}
+</script>
+
+</body>
+</html>

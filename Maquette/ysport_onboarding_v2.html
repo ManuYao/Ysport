@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YSport — Onboarding</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Clash+Display:wght@600;700&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --gold: #C9A84C;
+  --gold2: #E8C96A;
+  --gold-dim: #C9A84C15;
+  --gold-border: #C9A84C30;
+  --bg: #080808;
+  --bg2: #101010;
+  --bg3: #161616;
+  --bg4: #1c1c1c;
+  --border: #1e1e1e;
+  --border2: #252525;
+  --text: #f0f0f0;
+  --text2: #777;
+  --text3: #3a3a3a;
+  --green: #4e9e60;
+  --blue: #6b7fff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #040404;
+  min-height: 100vh;
+  display: flex; justify-content: center;
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* ── Bruit de fond global ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+}
+
+.shell {
+  width: 100%; max-width: 390px;
+  background: var(--bg);
+  border-radius: 24px; overflow: hidden;
+  border: 0.5px solid #1a1a1a;
+  color: var(--text);
+  display: flex; flex-direction: column;
+  height: calc(100vh - 24px);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── SCREENS ── */
+.screen {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+  will-change: transform, opacity;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.active { display: flex; }
+
+/* ════════════════════════════════
+   ÉCRAN 0 — SPLASH
+════════════════════════════════ */
+.splash {
+  background: var(--bg);
+  position: relative;
+  justify-content: flex-end;
+  min-height: 100%;
+}
+
+/* Halo doré principal */
+.splash-halo {
+  position: absolute;
+  top: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #C9A84C22 0%, #C9A84C08 45%, transparent 70%);
+  pointer-events: none;
+  animation: haloPulse 4s ease-in-out infinite;
+}
+@keyframes haloPulse {
+  0%,100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50% { transform: translateX(-50%) scale(1.08); opacity: 0.8; }
+}
+
+/* Second halo bleu */
+.splash-halo2 {
+  position: absolute;
+  top: 20px; left: 20%;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #6b7fff0e 0%, transparent 70%);
+  pointer-events: none;
+  animation: haloPulse 6s ease-in-out infinite reverse;
+}
+
+/* Grille décorative */
+.splash-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#ffffff04 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff04 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.splash-content {
+  position: relative; z-index: 2;
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 28px 20px;
+}
+
+/* LOGO */
+.splash-logo-group { text-align: center; margin-bottom: 36px; }
+
+.splash-emblem {
+  width: 88px; height: 88px;
+  margin: 0 auto 20px;
+  position: relative;
+}
+
+.splash-emblem-ring {
+  position: absolute; inset: 0;
+  border-radius: 26px;
+  border: 1px solid var(--gold-border);
+  animation: rotateRing 8s linear infinite;
+  background: conic-gradient(
+    transparent 0deg,
+    #C9A84C22 90deg,
+    transparent 180deg,
+    #C9A84C11 270deg,
+    transparent 360deg
+  );
+}
+@keyframes rotateRing { to { transform: rotate(360deg); } }
+
+.splash-emblem-inner {
+  position: absolute; inset: 6px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1a1407 0%, #0e0c05 100%);
+  border: 0.5px solid #C9A84C22;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  box-shadow: inset 0 1px 0 #C9A84C18, 0 8px 32px #C9A84C10;
+}
+
+.splash-wordmark {
+  font-family: 'Syne', sans-serif;
+  font-size: 42px; font-weight: 800;
+  letter-spacing: -2px; line-height: 1;
+  color: #fff;
+}
+.splash-wordmark em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.splash-claim {
+  font-size: 13px; font-weight: 300; font-style: italic;
+  color: var(--text2); margin-top: 8px; letter-spacing: 0.3px;
+}
+
+/* STATS strip */
+.splash-stats {
+  display: flex; gap: 0;
+  background: var(--bg3);
+  border: 0.5px solid var(--border2);
+  border-radius: 14px; overflow: hidden;
+  margin-bottom: 36px; width: 100%;
+}
+.sstat { flex: 1; padding: 12px 10px; text-align: center; border-right: 0.5px solid var(--border); }
+.sstat:last-child { border-right: none; }
+.sstat-n {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.sstat-l { font-size: 9px; color: var(--text3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* AUTH BUTTONS */
+.splash-auth {
+  width: 100%;
+  padding: 20px 24px 36px;
+  background: linear-gradient(0deg, var(--bg) 60%, transparent);
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 9px;
+}
+
+.auth-btn {
+  width: 100%; padding: 14px 18px;
+  border-radius: 13px; font-size: 13px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.18s; border: none; position: relative; overflow: hidden;
+}
+
+.auth-btn.google {
+  background: #fff; color: #111;
+  box-shadow: 0 2px 20px #ffffff10;
+}
+.auth-btn.google:hover { background: #f5f5f5; transform: translateY(-1px); }
+
+.auth-btn.apple {
+  background: #111; color: #fff;
+  border: 0.5px solid #2a2a2a;
+}
+.auth-btn.apple:hover { background: #1a1a1a; }
+
+.auth-btn-ico { width: 22px; height: 22px; flex-shrink: 0; }
+.auth-btn span { flex: 1; text-align: left; }
+.auth-btn-arr {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #00000015; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; flex-shrink: 0; color: #666;
+}
+
+.auth-divider {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; color: var(--text3);
+}
+.auth-divider::before, .auth-divider::after { content:''; flex:1; height:0.5px; background:var(--border); }
+
+.auth-email {
+  width: 100%; padding: 12px;
+  border-radius: 11px; font-size: 12px;
+  font-family: inherit; cursor: pointer;
+  background: transparent; color: var(--text2);
+  border: 0.5px solid var(--border2);
+  transition: all 0.15s; letter-spacing: 0.2px;
+}
+.auth-email:hover { border-color: var(--gold-border); color: var(--gold); }
+
+.auth-login {
+  text-align: center; font-size: 11px; color: var(--text3);
+}
+.auth-login b { color: var(--gold); cursor: pointer; font-weight: 500; }
+
+/* ════════════════════════════════
+   SHARED — Form screens
+════════════════════════════════ */
+.fscreen {
+  background: var(--bg);
+  position: relative;
+  justify-content: space-between;
+  min-height: 100%;
+}
+
+/* Halo de fond sur les form screens */
+.fscreen-halo {
+  position: absolute;
+  pointer-events: none; z-index: 0;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+.fscreen-halo.top {
+  width: 250px; height: 200px;
+  top: -60px; right: -60px;
+  background: radial-gradient(circle, #C9A84C12 0%, transparent 70%);
+}
+.fscreen-halo.bot {
+  width: 200px; height: 200px;
+  bottom: 80px; left: -80px;
+  background: radial-gradient(circle, #6b7fff0a 0%, transparent 70%);
+}
+
+.fscreen-top {
+  padding: 22px 22px 0;
+  position: relative; z-index: 1;
+}
+
+.back-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 22px;
+}
+.back-ico {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); transition: all 0.15s;
+}
+.back-ico:hover { border-color: var(--gold-border); color: var(--gold); }
+
+/* Progress bar linéaire fine */
+.prog-bar {
+  flex: 1; height: 2px;
+  background: var(--border2); border-radius: 2px; overflow: hidden;
+}
+.prog-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.prog-label { font-size: 10px; color: var(--text3); flex-shrink: 0; }
+
+.fscreen-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 800; color: #fff;
+  line-height: 1.1; margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+.fscreen-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.fscreen-sub { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 24px; }
+
+/* FIELDS */
+.field { margin-bottom: 14px; position: relative; }
+.field label {
+  display: block; font-size: 10px; color: var(--text3);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.7px;
+}
+.field input {
+  width: 100%; background: var(--bg3);
+  border: 0.5px solid var(--border2); border-radius: 12px;
+  padding: 13px 15px; color: var(--text);
+  font-size: 13px; font-family: inherit; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.field input:focus {
+  border-color: var(--gold-border);
+  box-shadow: 0 0 0 3px #C9A84C0a;
+}
+.field input::placeholder { color: var(--text3); font-weight: 300; }
+
+.fscreen-bot {
+  padding: 16px 22px 32px;
+  position: relative; z-index: 1;
+}
+
+.btn-cta {
+  width: 100%; padding: 15px;
+  border-radius: 13px; font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer; border: none;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #0e0c05;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.18s; letter-spacing: 0.2px;
+  box-shadow: 0 4px 20px #C9A84C25;
+}
+.btn-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 28px #C9A84C35; }
+.btn-cta:active { transform: scale(0.98); }
+.btn-cta:disabled { opacity: 0.35; cursor: default; transform: none; box-shadow: none; }
+
+.btn-ghost-link {
+  display: block; text-align: center;
+  font-size: 11px; color: var(--text3);
+  margin-top: 12px; cursor: pointer; transition: color 0.15s;
+}
+.btn-ghost-link:hover { color: var(--text2); }
+
+/* ════════════════════════════════
+   ÉCRAN 2 — LOCALISATION
+════════════════════════════════ */
+.loc-visual-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8px 22px 16px;
+  position: relative; z-index: 1;
+}
+
+.loc-map-shell {
+  width: 100%; max-width: 320px;
+  border-radius: 18px;
+  border: 0.5px solid var(--border2);
+  overflow: hidden; position: relative;
+  background: #111113;
+  box-shadow: 0 8px 40px #00000050, 0 0 0 1px #ffffff04;
+}
+
+/* Halo sur la map */
+.loc-map-glow {
+  position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: radial-gradient(circle at 50% 55%, #C9A84C12 0%, transparent 55%);
+}
+
+/* Points de données fictifs */
+.data-point {
+  position: absolute; z-index: 4;
+  display: flex; flex-direction: column; align-items: center;
+  transform: translate(-50%, -100%);
+  animation: dataFloat 3s ease-in-out infinite;
+}
+.data-point:nth-child(2) { animation-delay: 1s; }
+.data-point:nth-child(3) { animation-delay: 2s; }
+@keyframes dataFloat {
+  0%,100% { transform: translate(-50%, -100%); }
+  50% { transform: translate(-50%, calc(-100% - 4px)); }
+}
+.dp-label {
+  background: var(--bg2); border: 0.5px solid var(--border2);
+  border-radius: 5px; padding: 2px 7px;
+  font-size: 8px; font-weight: 500; color: #999;
+  white-space: nowrap; margin-bottom: 2px;
+  box-shadow: 0 2px 8px #00000040;
+}
+.dp-label.g { background: var(--gold); border-color: var(--gold); color: #111; }
+.dp-stem { width: 1px; height: 7px; background: var(--border2); }
+.dp-stem.g { background: var(--gold); }
+.dp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); border: 1px solid #111; }
+.dp-dot.g { background: var(--gold); }
+
+/* User pulse */
+.loc-pulse-wrap {
+  position: absolute; z-index: 5;
+  left: 50%; top: 56%;
+  transform: translate(-50%, -50%);
+}
+.pulse-r {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  animation: pulsate 2.2s ease-out infinite;
+}
+.pulse-r:nth-child(2) { animation-delay: 0.7s; }
+.pulse-r:nth-child(3) { animation-delay: 1.4s; }
+@keyframes pulsate {
+  0% { width: 10px; height: 10px; opacity: 0.9; }
+  100% { width: 72px; height: 72px; opacity: 0; }
+}
+.loc-center-dot {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--gold); border: 2.5px solid #111113;
+  position: relative; z-index: 2;
+  box-shadow: 0 0 0 3px #C9A84C28, 0 2px 8px #C9A84C40;
+}
+
+.loc-info-pill {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 12px; padding: 11px 14px;
+  margin-top: 14px; width: 100%; max-width: 320px;
+}
+.lip-n {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px; font-weight: 700; color: var(--gold);
+}
+.lip-text { flex: 1; }
+.lip-title { font-size: 12px; font-weight: 500; color: var(--text); }
+.lip-sub { font-size: 10px; color: var(--text3); }
+.lip-ico { font-size: 20px; }
+
+/* ════════════════════════════════
+   ÉCRAN 3 — SPORTS
+════════════════════════════════ */
+.sports-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  padding: 4px 22px 16px;
+  position: relative; z-index: 1;
+}
+
+.sport-card {
+  background: var(--bg3);
+  border: 0.5px solid var(--border2);
+  border-radius: 14px; padding: 16px 14px;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; flex-direction: column; gap: 6px;
+  position: relative; overflow: hidden;
+}
+/* Glow interne au hover */
+.sport-card::after {
+  content: ''; position: absolute; inset: 0; border-radius: 14px;
+  background: radial-gradient(circle at 30% 30%, #C9A84C08 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.2s;
+}
+.sport-card:hover::after { opacity: 1; }
+.sport-card:hover { border-color: #333; }
+
+.sport-card.sel {
+  border-color: var(--gold);
+  background: #120f03;
+  box-shadow: 0 0 0 1px #C9A84C18, inset 0 1px 0 #C9A84C10;
+}
+.sport-card.sel::after { opacity: 1; }
+
+.sport-check {
+  position: absolute; top: 10px; right: 10px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--bg4); border: 0.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-size: 9px; color: transparent;
+}
+.sport-card.sel .sport-check {
+  background: var(--gold);
+  border-color: var(--gold); color: #111;
+  font-weight: 700;
+}
+
+.sport-ico { font-size: 26px; }
+.sport-name { font-size: 12px; font-weight: 500; color: #ccc; transition: color 0.15s; }
+.sport-sub { font-size: 9px; color: var(--text3); }
+.sport-card.sel .sport-name { color: #fff; }
+
+.sport-sel-info {
+  padding: 0 22px; margin-bottom: 4px;
+  font-size: 11px; color: var(--text3);
+  position: relative; z-index: 1;
+}
+.sport-sel-info b { color: var(--gold); }
+
+/* ════════════════════════════════
+   ÉCRAN 4 — C'EST PARTI
+════════════════════════════════ */
+.ready-screen {
+  background: var(--bg);
+  position: relative; overflow: hidden;
+}
+
+/* Grand halo central */
+.ready-halo {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%; pointer-events: none;
+  top: -60px; left: 50%; transform: translateX(-50%);
+  background: radial-gradient(circle, #C9A84C18 0%, #C9A84C05 40%, transparent 70%);
+  animation: haloPulse 3s ease-in-out infinite;
+}
+.ready-halo2 {
+  position: absolute;
+  width: 280px; height: 280px;
+  border-radius: 50%; pointer-events: none;
+  bottom: 60px; left: 50%; transform: translateX(-50%);
+  background: radial-gradient(circle, #6b7fff0a 0%, transparent 70%);
+  animation: haloPulse 5s ease-in-out infinite reverse;
+}
+
+/* Grille déco -->*/
+.ready-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(#ffffff03 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff03 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 20%, black 0%, transparent 65%);
+}
+
+.ready-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex: 1; padding: 44px 28px 36px;
+  text-align: center;
+}
+
+.ready-emblem {
+  width: 96px; height: 96px; margin: 0 auto 28px;
+  position: relative;
+}
+.ready-emblem-ring {
+  position: absolute; inset: 0; border-radius: 28px;
+  animation: rotateRing 6s linear infinite;
+  background: conic-gradient(
+    transparent 0deg, #C9A84C30 90deg,
+    transparent 180deg, #C9A84C18 270deg, transparent 360deg
+  );
+}
+.ready-emblem-inner {
+  position: absolute; inset: 5px; border-radius: 22px;
+  background: linear-gradient(135deg, #1c1607, #0e0c04);
+  border: 0.5px solid var(--gold-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  box-shadow: 0 0 40px #C9A84C20, inset 0 1px 0 #C9A84C15;
+}
+
+.ready-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 34px; font-weight: 800; color: #fff;
+  letter-spacing: -1px; line-height: 1.05;
+  margin-bottom: 10px;
+}
+.ready-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ready-sub {
+  font-size: 14px; color: var(--text2);
+  line-height: 1.6; margin-bottom: 24px;
+  font-weight: 300;
+}
+
+/* Sports chips */
+.ready-sports {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 24px;
+}
+.rsport {
+  background: var(--gold-dim); border: 0.5px solid var(--gold-border);
+  border-radius: 8px; padding: 5px 11px;
+  font-size: 11px; color: var(--gold); font-weight: 500;
+}
+
+/* Features débloquées */
+.ready-features {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-bottom: 28px; width: 100%;
+}
+.rfeat {
+  background: var(--bg3); border: 0.5px solid var(--border2);
+  border-radius: 11px; padding: 11px 12px;
+  display: flex; align-items: center; gap: 8px;
+  text-align: left;
+}
+.rfeat-ico { font-size: 16px; flex-shrink: 0; }
+.rfeat-txt { font-size: 10px; color: var(--text2); line-height: 1.4; }
+.rfeat-txt b { display: block; font-size: 11px; color: var(--text); font-weight: 500; margin-bottom: 1px; }
+
+.btn-ready {
+  width: 100%; padding: 16px;
+  border-radius: 14px; font-size: 15px; font-weight: 700;
+  font-family: inherit; cursor: pointer; border: none;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #0a0800;
+  letter-spacing: 0.3px;
+  box-shadow: 0 6px 30px #C9A84C30;
+  transition: all 0.18s;
+  margin-bottom: 10px;
+}
+.btn-ready:hover { transform: translateY(-2px); box-shadow: 0 10px 40px #C9A84C40; }
+.btn-ready:active { transform: scale(0.98); }
+
+.btn-profile-link {
+  font-size: 11px; color: var(--text3);
+  cursor: pointer; padding: 6px;
+  transition: color 0.15s;
+}
+.btn-profile-link:hover { color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ══ S0 — SPLASH ══ -->
+  <div class="screen active" id="s0">
+    <div class="splash" style="display:flex;flex-direction:column;flex:1;">
+      <div class="splash-halo"></div>
+      <div class="splash-halo2"></div>
+      <div class="splash-grid"></div>
+
+      <div class="splash-content">
+        <div class="splash-logo-group">
+          <div class="splash-emblem">
+            <div class="splash-emblem-ring"></div>
+            <div class="splash-emblem-inner">🏃</div>
+          </div>
+          <div class="splash-wordmark">Y<em>Sport</em></div>
+          <div class="splash-claim">Trouve un spot. Joue maintenant.</div>
+        </div>
+
+        <div class="splash-stats">
+          <div class="sstat"><div class="sstat-n">2 400+</div><div class="sstat-l">Spots</div></div>
+          <div class="sstat"><div class="sstat-n">Live</div><div class="sstat-l">Dispo réel</div></div>
+          <div class="sstat"><div class="sstat-n">100%</div><div class="sstat-l">Gratuit</div></div>
+        </div>
+      </div>
+
+      <div class="splash-auth">
+        <button class="auth-btn google" onclick="goScreen(1)">
+          <svg class="auth-btn-ico" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          <span>Continuer avec Google</span>
+          <div class="auth-btn-arr">›</div>
+        </button>
+
+        <button class="auth-btn apple" onclick="goScreen(1)">
+          <svg class="auth-btn-ico" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <span>Continuer avec Apple</span>
+          <div class="auth-btn-arr" style="color:#555;">›</div>
+        </button>
+
+        <div class="auth-divider">ou inscription par email</div>
+
+        <button class="auth-email" onclick="goScreen(1)">Créer un compte avec email →</button>
+
+        <div class="auth-login">Déjà inscrit ? <b onclick="goScreen(1)">Se connecter</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S1 — INSCRIPTION ══ -->
+  <div class="screen" id="s1">
+    <div class="fscreen" style="display:flex;flex-direction:column;flex:1;">
+      <div class="fscreen-halo top"></div>
+      <div class="fscreen-halo bot"></div>
+
+      <div class="fscreen-top">
+        <div class="back-row">
+          <div class="back-ico" onclick="goScreen(0)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:33%"></div></div>
+          <div class="prog-label">1 / 3</div>
+        </div>
+
+        <div class="fscreen-title">Crée ton<br><em>compte</em></div>
+        <div class="fscreen-sub">Gratuit. Toujours.</div>
+
+        <div class="field">
+          <label>Prénom</label>
+          <input type="text" placeholder="Ex: Manu" id="firstName"/>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" placeholder="ton@email.com"/>
+        </div>
+        <div class="field">
+          <label>Mot de passe</label>
+          <input type="password" placeholder="8 caractères minimum"/>
+        </div>
+      </div>
+
+      <div class="fscreen-bot">
+        <button class="btn-cta" onclick="goScreen(2)">
+          Continuer
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:10px;">
+          En continuant tu acceptes nos CGU
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S2 — LOCALISATION ══ -->
+  <div class="screen" id="s2">
+    <div class="fscreen" style="display:flex;flex-direction:column;flex:1;">
+      <div class="fscreen-halo top"></div>
+
+      <div class="fscreen-top">
+        <div class="back-row">
+          <div class="back-ico" onclick="goScreen(1)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div>
+          <div class="prog-label">2 / 3</div>
+        </div>
+        <div class="fscreen-title">Où tu<br><em>sportes ?</em></div>
+        <div class="fscreen-sub">On trouve les spots les plus proches de toi en temps réel.</div>
+      </div>
+
+      <div class="loc-visual-wrap">
+        <div class="loc-map-shell">
+          <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" style="display:block;width:100%;height:200px;">
+            <rect width="320" height="200" fill="#111113"/>
+            <rect x="8" y="6" width="68" height="48" rx="3" fill="#191919"/>
+            <rect x="90" y="4" width="52" height="36" rx="3" fill="#191919"/>
+            <rect x="158" y="8" width="76" height="46" rx="3" fill="#191919"/>
+            <rect x="252" y="4" width="62" height="50" rx="3" fill="#191919"/>
+            <rect x="6" y="82" width="54" height="58" rx="3" fill="#191919"/>
+            <rect x="76" y="74" width="70" height="68" rx="3" fill="#191919"/>
+            <rect x="162" y="80" width="60" height="60" rx="3" fill="#191919"/>
+            <rect x="240" y="76" width="74" height="64" rx="3" fill="#191919"/>
+            <rect x="8" y="162" width="85" height="38" rx="3" fill="#191919"/>
+            <rect x="108" y="158" width="62" height="42" rx="3" fill="#191919"/>
+            <rect x="188" y="162" width="78" height="38" rx="3" fill="#191919"/>
+            <line x1="0" y1="70" x2="320" y2="70" stroke="#222" stroke-width="9"/>
+            <line x1="0" y1="154" x2="320" y2="154" stroke="#222" stroke-width="7"/>
+            <line x1="68" y1="0" x2="68" y2="200" stroke="#222" stroke-width="9"/>
+            <line x1="152" y1="0" x2="152" y2="200" stroke="#222" stroke-width="7"/>
+            <line x1="236" y1="0" x2="236" y2="200" stroke="#222" stroke-width="7"/>
+            <ellipse cx="160" cy="118" rx="30" ry="17" fill="#182018"/>
+          </svg>
+          <div class="loc-map-glow"></div>
+
+          <!-- Pins spots -->
+          <div class="data-point" style="position:absolute;left:63%;top:42%;">
+            <div class="dp-label g">Léon Blum ⚽</div>
+            <div class="dp-stem g"></div>
+            <div class="dp-dot g"></div>
+          </div>
+          <div class="data-point" style="position:absolute;left:28%;top:30%;">
+            <div class="dp-label">🏀 Jean Moulin</div>
+            <div class="dp-stem"></div>
+            <div class="dp-dot"></div>
+          </div>
+          <div class="data-point" style="position:absolute;left:78%;top:65%;">
+            <div class="dp-label">🎾 Tennis</div>
+            <div class="dp-stem"></div>
+            <div class="dp-dot"></div>
+          </div>
+
+          <!-- Pulse user -->
+          <div class="loc-pulse-wrap">
+            <div class="pulse-r"></div>
+            <div class="pulse-r"></div>
+            <div class="pulse-r"></div>
+            <div class="loc-center-dot"></div>
+          </div>
+        </div>
+
+        <div class="loc-info-pill">
+          <div class="lip-ico">📍</div>
+          <div class="lip-text">
+            <div class="lip-title"><span class="lip-n">14 </span>spots trouvés</div>
+            <div class="lip-sub">Paris 11e · estimé · rayon 10 km</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fscreen-bot">
+        <button class="btn-cta" onclick="simulateGeo()" id="geoBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          Autoriser ma localisation
+        </button>
+        <div class="btn-ghost-link" onclick="goScreen(3)">Passer cette étape →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S3 — SPORTS ══ -->
+  <div class="screen" id="s3">
+    <div class="fscreen" style="display:flex;flex-direction:column;flex:1;">
+      <div class="fscreen-halo top"></div>
+
+      <div class="fscreen-top" style="padding-bottom:12px;">
+        <div class="back-row">
+          <div class="back-ico" onclick="goScreen(2)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:99%"></div></div>
+          <div class="prog-label">3 / 3</div>
+        </div>
+        <div class="fscreen-title">Tes<br><em>sports ?</em></div>
+        <div class="fscreen-sub" style="margin-bottom:12px;">Choisis tout ce que tu pratiques.</div>
+      </div>
+
+      <div class="sport-sel-info" id="selInfo">Sélectionne au moins 1 sport</div>
+
+      <div class="sports-grid" id="sportsGrid">
+        <div class="sport-card" onclick="toggleSport(this,'⚽ Foot')"><div class="sport-check">✓</div><div class="sport-ico">⚽</div><div class="sport-name">Football</div><div class="sport-sub">Terrain · Street</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🏀 Basket')"><div class="sport-check">✓</div><div class="sport-ico">🏀</div><div class="sport-name">Basketball</div><div class="sport-sub">Indoor · Street</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🎾 Tennis')"><div class="sport-check">✓</div><div class="sport-ico">🎾</div><div class="sport-name">Tennis</div><div class="sport-sub">Court · Padel</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🏃 Running')"><div class="sport-check">✓</div><div class="sport-ico">🏃</div><div class="sport-name">Running</div><div class="sport-sub">Piste · Trail</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🏋️ Muscu')"><div class="sport-check">✓</div><div class="sport-ico">🏋️</div><div class="sport-name">Musculation</div><div class="sport-sub">Salle · HIIT</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🏊 Natation')"><div class="sport-check">✓</div><div class="sport-ico">🏊</div><div class="sport-name">Natation</div><div class="sport-sub">Piscine · Plein air</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🧘 Yoga')"><div class="sport-check">✓</div><div class="sport-ico">🧘</div><div class="sport-name">Yoga</div><div class="sport-sub">Studio · Plein air</div></div>
+        <div class="sport-card" onclick="toggleSport(this,'🚴 Vélo')"><div class="sport-check">✓</div><div class="sport-ico">🚴</div><div class="sport-name">Vélo</div><div class="sport-sub">Route · VTT</div></div>
+      </div>
+
+      <div class="fscreen-bot">
+        <button class="btn-cta" id="sportsNext" onclick="goScreen(4)" disabled>
+          C'est parti 🔥
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S4 — PRÊT ══ -->
+  <div class="screen" id="s4">
+    <div class="ready-screen" style="display:flex;flex-direction:column;flex:1;">
+      <div class="ready-halo"></div>
+      <div class="ready-halo2"></div>
+      <div class="ready-grid"></div>
+
+      <div class="ready-content">
+        <div class="ready-emblem">
+          <div class="ready-emblem-ring"></div>
+          <div class="ready-emblem-inner">🏆</div>
+        </div>
+
+        <div class="ready-title">Prêt à<br><em>jouer ?</em></div>
+        <div class="ready-sub" id="readySub">Ton profil est créé.<br>14 spots t'attendent.</div>
+
+        <div class="ready-sports" id="readySports"></div>
+
+        <div class="ready-features">
+          <div class="rfeat"><div class="rfeat-ico">📍</div><div class="rfeat-txt"><b>14 spots</b>Autour de toi</div></div>
+          <div class="rfeat"><div class="rfeat-ico">💬</div><div class="rfeat-txt"><b>Canal local</b>28 sportifs</div></div>
+          <div class="rfeat"><div class="rfeat-ico">🔥</div><div class="rfeat-txt"><b>Timer HIIT</b>5 modes</div></div>
+          <div class="rfeat"><div class="rfeat-ico">🎯</div><div class="rfeat-txt"><b>3 events</b>À rejoindre</div></div>
+        </div>
+
+        <button class="btn-ready" onclick="alert('Bienvenue sur YSport 🚀')">
+          Explorer les spots →
+        </button>
+        <div class="btn-profile-link" onclick="alert('Profil')">Voir mon profil d'abord</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let cur = 0;
+const sel = new Set();
+
+function goScreen(n) {
+  const from = document.getElementById('s'+cur);
+  const to   = document.getElementById('s'+n);
+  const fwd  = n > cur;
+
+  from.style.transition = 'opacity .22s ease, transform .22s ease';
+  from.style.opacity = '0';
+  from.style.transform = fwd ? 'translateX(-28px)' : 'translateX(28px)';
+
+  setTimeout(() => {
+    from.classList.remove('active');
+    from.style.cssText = '';
+
+    to.style.opacity = '0';
+    to.style.transform = fwd ? 'translateX(28px)' : 'translateX(-28px)';
+    to.classList.add('active');
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        to.style.transition = 'opacity .28s ease, transform .28s ease';
+        to.style.opacity = '1';
+        to.style.transform = 'translateX(0)';
+        setTimeout(() => { to.style.cssText = ''; }, 300);
+      });
+    });
+
+    if (n === 4) buildReady();
+    cur = n;
+  }, 200);
+}
+
+function simulateGeo() {
+  const btn = document.getElementById('geoBtn');
+  btn.innerHTML = '✓ Paris 11e détecté';
+  btn.style.background = 'linear-gradient(135deg,#4e9e60,#6ec480)';
+  btn.style.boxShadow = '0 4px 20px #4e9e6030';
+  setTimeout(() => goScreen(3), 700);
+}
+
+function toggleSport(card, name) {
+  card.classList.toggle('sel');
+  if (card.classList.contains('sel')) sel.add(name);
+  else sel.delete(name);
+  const n = sel.size;
+  const info = document.getElementById('selInfo');
+  const btn  = document.getElementById('sportsNext');
+  info.innerHTML = n === 0
+    ? 'Sélectionne au moins 1 sport'
+    : `<b>${n} sport${n>1?'s':''}</b> sélectionné${n>1?'s':''}`;
+  btn.disabled = n === 0;
+}
+
+function buildReady() {
+  const name = document.getElementById('firstName')?.value?.trim();
+  const sub  = document.getElementById('readySub');
+  if (name) sub.innerHTML = `Bienvenue <b style="color:var(--gold)">${name}</b> !<br>14 spots t'attendent à Paris 11e.`;
+
+  const sportsEl = document.getElementById('readySports');
+  sportsEl.innerHTML = '';
+  const list = sel.size ? [...sel] : ['⚽ Foot','🏃 Running'];
+  list.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'rsport'; d.textContent = s;
+    sportsEl.appendChild(d);
+  });
+}
+</script>
+</body>
+</html>

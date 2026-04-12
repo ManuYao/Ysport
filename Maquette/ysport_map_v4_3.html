@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YSport — Map</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #080808; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 12px; }
+
+.app {
+  width: 100%; max-width: 980px;
+  background: #111; border-radius: 16px; overflow: hidden;
+  border: 0.5px solid #222; color: #f0f0f0; font-size: 13px;
+  display: flex; flex-direction: column;
+  height: calc(100vh - 24px); min-height: 500px;
+}
+
+/* TOPBAR */
+.topbar { height: 50px; background: #141414; border-bottom: 0.5px solid #222; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+.logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.logo-dot { width: 6px; height: 6px; background: #C9A84C; border-radius: 50%; }
+.search-box { flex: 1; display: flex; align-items: center; gap: 6px; background: #1a1a1a; border: 0.5px solid #282828; border-radius: 8px; padding: 6px 10px; min-width: 0; }
+.search-box input { background: none; border: none; outline: none; color: #f0f0f0; font-size: 12px; width: 100%; font-family: inherit; min-width: 0; }
+.search-box input::placeholder { color: #404040; }
+.topbar-icons { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.icon-btn { width: 30px; height: 30px; border-radius: 8px; border: 0.5px solid #252525; background: #1a1a1a; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #555; position: relative; }
+.icon-btn.active { border-color: #C9A84C66; color: #C9A84C; background: #C9A84C10; }
+.pip { position: absolute; top: 4px; right: 4px; width: 5px; height: 5px; background: #C9A84C; border-radius: 50%; border: 1.5px solid #1a1a1a; }
+.avatar { width: 28px; height: 28px; border-radius: 50%; background: #C9A84C20; border: 1.5px solid #C9A84C44; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #C9A84C; cursor: pointer; flex-shrink: 0; }
+
+/* BODY */
+.body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+/* SIDEBAR */
+.sidebar { width: 300px; min-width: 300px; background: #131313; display: flex; flex-direction: column; border-right: 0.5px solid #1e1e1e; overflow: hidden; }
+.stabs { display: flex; border-bottom: 0.5px solid #1e1e1e; flex-shrink: 0; }
+.stab { flex: 1; padding: 8px 2px; text-align: center; font-size: 10px; color: #404040; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s; white-space: nowrap; }
+.stab.on { color: #C9A84C; border-bottom-color: #C9A84C; }
+.chips { padding: 7px 9px; display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; border-bottom: 0.5px solid #191919; flex-shrink: 0; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { white-space: nowrap; padding: 3px 9px; border-radius: 20px; font-size: 10px; border: 0.5px solid #272727; background: #191919; color: #555; cursor: pointer; transition: all 0.15s; }
+.chip.on { background: #C9A84C; border-color: #C9A84C; color: #111; font-weight: 600; }
+.meta-row { padding: 6px 12px 3px; font-size: 10px; color: #343434; text-transform: uppercase; letter-spacing: 0.6px; flex-shrink: 0; }
+.list { flex: 1; overflow-y: auto; padding: 5px 8px 8px; display: flex; flex-direction: column; gap: 5px; scrollbar-width: thin; scrollbar-color: #1e1e1e transparent; }
+
+/* AD */
+.ad-item { display: flex; align-items: center; gap: 8px; background: #181818; border: 0.5px solid #202020; border-radius: 8px; padding: 7px 9px; position: relative; overflow: hidden; flex-shrink: 0; }
+.ad-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:#C9A84C44; }
+.ad-ico2 { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.ad-tag2 { font-size:9px; color:#2e2e2e; border:0.5px solid #232323; border-radius:3px; padding:1px 4px; margin-left:auto; flex-shrink:0; }
+.ad-x { width:14px; height:14px; border-radius:50%; background:#222; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#3a3a3a; font-size:7px; flex-shrink:0; }
+
+/* CARDS */
+.card { background: #181818; border: 0.5px solid #202020; border-radius: 10px; padding: 10px 11px; cursor: pointer; transition: border-color 0.15s; flex-shrink: 0; }
+.card:hover { border-color: #C9A84C33; }
+.card.on { border-color: #C9A84C; background: #191813; }
+.card-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; }
+.card-name { font-size:12px; font-weight:500; color:#e0e0e0; line-height:1.3; }
+.card-sub { font-size:10px; color:#3e3e3e; margin-top:1px; }
+.badges { display:flex; gap:3px; flex-wrap:wrap; flex-shrink:0; }
+.bdg { font-size:9px; padding:2px 6px; border-radius:4px; font-weight:500; white-space:nowrap; }
+.bdg.gold { background:#C9A84C14; color:#C9A84C; border:0.5px solid #C9A84C2e; }
+.bdg.free { background:#121f12; color:#579e67; border:0.5px solid #579e6730; }
+.bdg.live { background:#1f1111; color:#d05050; border:0.5px solid #d0505030; display:flex; align-items:center; gap:3px; }
+.ldot { width:4px; height:4px; background:#d05050; border-radius:50%; animation:pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.2} }
+.card-row { display:flex; align-items:center; gap:6px; font-size:10px; color:#3e3e3e; }
+.stars { color:#C9A84C; font-size:9px; letter-spacing:-1px; }
+.ev-tag { display:inline-flex; align-items:center; gap:3px; background:#0d0d20; color:#7b8fff; border:0.5px solid #7b8fff18; border-radius:4px; font-size:9px; padding:2px 6px; margin-top:5px; }
+.auto-tag { display:inline-flex; align-items:center; gap:3px; background:#190f0a; color:#d08040; border:0.5px solid #d0804030; border-radius:4px; font-size:9px; padding:2px 6px; margin-top:3px; }
+.card-foot { margin-top:7px; padding-top:7px; border-top:0.5px solid #1c1c1c; display:flex; align-items:center; justify-content:space-between; }
+.dist { font-size:10px; color:#323232; display:flex; align-items:center; gap:3px; }
+.btn { font-size:10px; padding:4px 11px; border-radius:6px; border:0.5px solid #C9A84C; background:transparent; color:#C9A84C; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+.btn:hover { background:#C9A84C; color:#111; }
+.btn.g { border-color:#252525; color:#404040; }
+.btn.g:hover { border-color:#333; color:#888; background:transparent; }
+
+/* MAP */
+.map-area { flex: 1; position: relative; background: #1c1c1e; overflow: hidden; min-width: 0; }
+.map-svg { position:absolute; inset:0; width:100%; height:100%; }
+.map-ctrl { position:absolute; top:10px; right:10px; display:flex; flex-direction:column; gap:4px; z-index:10; }
+.mc { width:30px; height:30px; background:#181818; border:0.5px solid #282828; border-radius:7px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#505050; font-size:13px; }
+.wb { position:absolute; top:10px; left:10px; background:#161616ee; border:0.5px solid #d0505030; border-radius:8px; padding:6px 10px; display:flex; align-items:center; gap:6px; z-index:10; font-size:11px; }
+.wdot { width:5px; height:5px; background:#d05050; border-radius:50%; animation:pulse 1.2s infinite; }
+.radius { position:absolute; border-radius:50%; border:1px dashed #C9A84C25; background:#C9A84C03; pointer-events:none; z-index:2; width:180px; height:180px; left:42%; top:48%; transform:translate(-50%,-50%); }
+.pin { position:absolute; display:flex; flex-direction:column; align-items:center; cursor:pointer; transform:translate(-50%,-100%); z-index:5; }
+.plabel { background:#1c1c1c; border:0.5px solid #2c2c2c; border-radius:5px; padding:3px 7px; font-size:9px; font-weight:500; color:#aaa; white-space:nowrap; margin-bottom:3px; }
+.plabel.g { background:#C9A84C; border-color:#C9A84C; color:#111; }
+.plabel.e { background:#0d0d20; border-color:#7b8fff40; color:#7b8fff; }
+.plabel.s { background:#160f00; border-color:#C9A84C55; color:#C9A84C; border-style:dashed; }
+.pstem { width:1.5px; height:8px; background:#2a2a2a; }
+.pstem.g { background:#C9A84C; }
+.pstem.e { background:#7b8fff50; }
+.pstem.s { background:#C9A84C50; }
+.pdot { width:7px; height:7px; border-radius:50%; background:#2a2a2a; border:1.5px solid #1c1c1c; }
+.pdot.g { background:#C9A84C; }
+.pdot.e { background:#7b8fff; }
+.pdot.s { background:#C9A84C80; }
+.me { position:absolute; z-index:6; left:42%; top:48%; transform:translate(-50%,-50%); }
+.me-inner { width:11px; height:11px; border-radius:50%; background:#C9A84C; border:2px solid #111; box-shadow:0 0 0 4px #C9A84C15; }
+
+/* ══ SLOT UNIQUE — popup ou toast, jamais les deux ══ */
+.bottom-slot {
+  position: absolute;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: min(290px, calc(100% - 24px));
+  z-index: 20;
+}
+
+/* POPUP SPOT */
+.spot-popup {
+  background: #161616f0;
+  border: 0.5px solid #C9A84C30;
+  border-radius: 12px;
+  padding: 11px 13px;
+  display: flex; gap: 10px; align-items: flex-start;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.spot-popup.out {
+  opacity: 0; transform: translateY(6px); pointer-events: none;
+}
+.pop-ico { width:40px; height:40px; border-radius:8px; background:#222; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+.pop-title { font-size:12px; font-weight:500; color:#eee; margin-bottom:1px; }
+.pop-sub { font-size:10px; color:#3e3e3e; margin-bottom:5px; }
+.pop-stats { display:flex; gap:9px; font-size:10px; color:#444; margin-bottom:7px; }
+.pop-stats b { color:#C9A84C; }
+.pop-actions { display:flex; gap:5px; }
+
+/* TOAST */
+.toast {
+  display: none;
+  align-items: center; gap: 10px;
+  background: #161616f0;
+  border: 0.5px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 11px 12px;
+  position: relative; overflow: hidden;
+}
+.toast.show { display:flex; animation: tin 0.3s cubic-bezier(0.34,1.4,0.64,1) forwards; }
+.toast.hide { display:flex; animation: tout 0.22s ease-in forwards; }
+
+@keyframes tin  { from{opacity:0;transform:translateY(8px) scale(.97)} to{opacity:1;transform:none} }
+@keyframes tout { from{opacity:1;transform:none} to{opacity:0;transform:translateY(6px) scale(.97)} }
+
+.toast.ad    { border-color:#C9A84C20; }
+.toast.badge { border-color:#579e6730; }
+.toast.event { border-color:#7b8fff30; }
+
+.tbar { position:absolute; bottom:0; left:0; height:2px; border-radius:0 0 12px 12px; animation: tbar linear forwards; }
+.toast.ad    .tbar { background:linear-gradient(90deg,#C9A84C,#e8c96a); }
+.toast.badge .tbar { background:linear-gradient(90deg,#579e67,#7dc98a); }
+.toast.event .tbar { background:linear-gradient(90deg,#7b8fff,#a0a8ff); }
+@keyframes tbar { from{width:100%} to{width:0} }
+
+.tico { width:40px; height:40px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; border:0.5px solid #222; }
+.tbody { flex:1; min-width:0; }
+.ttag { font-size:8px; color:#333; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px; }
+.ttitle { font-size:11px; font-weight:600; color:#ddd; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tsub { font-size:10px; color:#444; line-height:1.4; }
+.tclose { width:18px; height:18px; border-radius:50%; background:#1e1e1e; border:0.5px solid #2a2a2a; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#404040; font-size:8px; flex-shrink:0; align-self:flex-start; transition:background 0.15s; }
+.tclose:hover { background:#2a2a2a; color:#888; }
+
+/* CHAT */
+.chat-ov { position:absolute; inset:0; background:#0009; z-index:50; display:none; align-items:flex-end; justify-content:flex-end; padding:12px; }
+.chat-ov.open { display:flex; }
+.cpanel { width:min(300px, calc(100% - 24px)); height:400px; background:#161616; border:0.5px solid #222; border-radius:13px; display:flex; flex-direction:column; overflow:hidden; }
+.chead { padding:9px 11px; border-bottom:0.5px solid #1c1c1c; display:flex; align-items:center; gap:6px; }
+.odot { width:5px; height:5px; background:#579e67; border-radius:50%; }
+.czone { font-size:11px; font-weight:500; color:#ccc; }
+.czone-sub { font-size:9px; color:#303030; }
+.cclose { margin-left:auto; width:20px; height:20px; border-radius:5px; border:0.5px solid #222; background:#1c1c1c; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#3a3a3a; font-size:10px; }
+.ctemp { padding:3px 11px; background:#C9A84C07; border-bottom:0.5px solid #C9A84C12; font-size:9px; color:#C9A84C55; text-align:center; }
+.cmsgs { flex:1; overflow-y:auto; padding:8px 9px; display:flex; flex-direction:column; gap:7px; scrollbar-width:thin; scrollbar-color:#1e1e1e transparent; }
+.cm { display:flex; gap:6px; }
+.cmav { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; flex-shrink:0; }
+.cmn { font-size:8px; color:#303030; margin-bottom:2px; }
+.cmt { background:#1c1c1c; border:0.5px solid #222; border-radius:2px 6px 6px 6px; padding:4px 7px; font-size:10px; color:#bbb; line-height:1.4; display:inline-block; }
+.cmention { background:#0d0d20; color:#7b8fff; border-radius:3px; padding:0 3px; font-size:9px; }
+.cinrow { padding:7px 9px; border-top:0.5px solid #181818; display:flex; gap:5px; }
+.cin { flex:1; background:#181818; border:0.5px solid #222; border-radius:6px; padding:5px 8px; color:#f0f0f0; font-size:10px; font-family:inherit; outline:none; }
+.csend { width:26px; height:26px; background:#C9A84C; border:none; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div>YSport</div>
+    <div class="search-box">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#383838" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Ville, code postal... ex: Cachan, 94230"/>
+    </div>
+    <div class="topbar-icons">
+      <div class="icon-btn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <div class="icon-btn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="pip"></div>
+      </div>
+      <div class="icon-btn active" id="chatBtn" onclick="toggleChat()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="pip"></div>
+      </div>
+      <div class="avatar">M</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="stabs">
+        <div class="stab on" onclick="switchTab('spots',this)">📍 Spots</div>
+        <div class="stab" onclick="switchTab('events',this)">🎯 Events</div>
+        <div class="stab" onclick="switchTab('workout',this)">🔥 Workout</div>
+      </div>
+
+      <div id="tab-spots" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="chips">
+          <div class="chip on">Tous</div>
+          <div class="chip">⚽ Foot</div>
+          <div class="chip">🏀 Basket</div>
+          <div class="chip">🎾 Tennis</div>
+          <div class="chip">🏋️ Muscu</div>
+          <div class="chip">🏃 Running</div>
+        </div>
+        <div class="meta-row">14 lieux · rayon 10 km</div>
+        <div class="list">
+          <div class="ad-item">
+            <div class="ad-ico2" style="background:#0c1825;">🏃</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:500;color:#b0b0b0;">Adidas Running</div><div style="font-size:9px;color:#303030;">Boost tes perfs · Découvrir</div></div>
+            <div class="ad-tag2">Sponsorisé</div>
+            <div class="ad-x" onclick="this.closest('.ad-item').remove()">✕</div>
+          </div>
+          <div class="card on">
+            <div class="card-head"><div><div class="card-name">Stade Léon Blum</div><div class="card-sub">Foot · Extérieur · Paris 11e</div></div><div class="badges"><div class="bdg free">Gratuit</div><div class="bdg live"><div class="ldot"></div>Live</div></div></div>
+            <div class="card-row"><span class="stars">★★★★</span><span style="color:#ccc">4.2</span><span>·</span><span>24 actifs</span></div>
+            <div class="ev-tag">🗓 Tournoi 5v5 · Sam 15h — 8 places</div>
+            <div class="auto-tag">🤖 Kevin revient chaque mardi 19h</div>
+            <div class="card-foot"><div class="dist">📍 0.4 km · Dispo</div><button class="btn">Voir</button></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><div class="card-name">Gymnase Jean Moulin</div><div class="card-sub">Basket · Badminton · Intérieur</div></div><div class="bdg gold">2€/h</div></div>
+            <div class="card-row"><span class="stars">★★★★★</span><span style="color:#ccc">4.7</span><span>·</span><span>8 places</span></div>
+            <div class="card-foot"><div class="dist">📍 0.8 km</div><button class="btn">Voir</button></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><div class="card-name">Street basket Nation</div><div class="card-sub">Basket · Street · Extérieur</div></div><div class="bdg free">Gratuit</div></div>
+            <div class="card-row"><span class="stars">★★★★</span><span style="color:#ccc">4.4</span><span>·</span><span>Créez un event</span></div>
+            <div class="card-foot"><div class="dist">📍 1.1 km</div><button class="btn">+ Event</button></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><div class="card-name">Piste running Vincennes</div><div class="card-sub">Running · Plein air</div></div><div class="bdg free">Gratuit</div></div>
+            <div class="card-row"><span class="stars">★★★★★</span><span style="color:#ccc">4.9</span><span>·</span><span>Très fréquenté</span></div>
+            <div class="card-foot"><div class="dist">📍 2.3 km</div><button class="btn">Voir</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-events" style="display:none;flex:1;overflow-y:auto;padding:8px;flex-direction:column;gap:5px;">
+        <div class="meta-row" style="padding:2px 3px 8px;">3 événements · 2 auto</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div class="card on">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div class="card-name">🤖 Défi AMRAP communautaire</div><div class="bdg live"><div class="ldot"></div>Auto</div></div>
+            <div style="font-size:10px;color:#3e3e3e;margin-bottom:4px;">Léon Blum · 4 users actifs</div>
+            <div style="font-size:10px;color:#888;">Qui fait le plus ? <b style="color:#C9A84C">6 participants</b></div>
+            <div style="margin-top:7px;padding-top:7px;border-top:0.5px solid #1c1c1c;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:9px;color:#3e3e3e;">🏆 Marc · 12 rounds</span><button class="btn">Rejoindre</button></div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div class="card-name">🤖 L'habitué du mardi</div><div class="bdg gold">Auto</div></div>
+            <div style="font-size:10px;color:#3e3e3e;">Kevin · mardi 19h · Léon Blum</div>
+            <div style="margin-top:7px;padding-top:7px;border-top:0.5px solid #1c1c1c;display:flex;justify-content:flex-end;"><button class="btn">Rejoindre</button></div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div class="card-name">Tournoi 5v5 Foot</div><div class="bdg live"><div class="ldot"></div>Sam 15h</div></div>
+            <div style="font-size:10px;color:#3e3e3e;">Léon Blum · Kevin M. · 6/10</div>
+            <div style="margin-top:7px;padding-top:7px;border-top:0.5px solid #1c1c1c;display:flex;justify-content:flex-end;"><button class="btn">Rejoindre</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-workout" style="display:none;flex:1;overflow-y:auto;padding:8px;flex-direction:column;gap:5px;">
+        <div class="meta-row" style="padding:2px 3px 8px;">2 workouts en cours</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div class="card on">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div class="card-name">HIIT — Léon Blum</div><div class="bdg live"><div class="ldot"></div>Live</div></div>
+            <div style="font-size:10px;color:#3e3e3e;margin-bottom:7px;">22 min · 8 participants</div>
+            <div style="background:#1a1a1a;border-radius:4px;height:3px;overflow:hidden;margin-bottom:3px;"><div style="width:65%;height:100%;background:#C9A84C;"></div></div>
+            <div style="font-size:9px;color:#303030;display:flex;justify-content:space-between;"><span>65%</span><span>~12 min restantes</span></div>
+            <div style="margin-top:7px;padding-top:7px;border-top:0.5px solid #1c1c1c;display:flex;justify-content:flex-end;"><button class="btn">Rejoindre</button></div>
+          </div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div class="card-name">Yoga · Vincennes</div><div class="bdg live"><div class="ldot"></div>Live</div></div>
+            <div style="font-size:10px;color:#3e3e3e;margin-bottom:7px;">10 min · 5 participants</div>
+            <div style="background:#1a1a1a;border-radius:4px;height:3px;overflow:hidden;margin-bottom:3px;"><div style="width:30%;height:100%;background:#7b8fff;"></div></div>
+            <div style="font-size:9px;color:#303030;display:flex;justify-content:space-between;"><span>30%</span><span>~25 min restantes</span></div>
+            <div style="margin-top:7px;padding-top:7px;border-top:0.5px solid #1c1c1c;display:flex;justify-content:flex-end;"><button class="btn">Rejoindre</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="map-area">
+      <svg class="map-svg" viewBox="0 0 700 690" preserveAspectRatio="xMidYMid slice">
+        <rect width="700" height="690" fill="#1c1c1e"/>
+        <rect x="20" y="12" width="100" height="70" rx="3" fill="#212121"/>
+        <rect x="140" y="8" width="80" height="52" rx="3" fill="#212121"/>
+        <rect x="240" y="18" width="120" height="58" rx="3" fill="#212121"/>
+        <rect x="380" y="10" width="88" height="65" rx="3" fill="#212121"/>
+        <rect x="490" y="14" width="108" height="54" rx="3" fill="#212121"/>
+        <rect x="18" y="130" width="78" height="82" rx="3" fill="#212121"/>
+        <rect x="118" y="120" width="106" height="74" rx="3" fill="#212121"/>
+        <rect x="248" y="128" width="88" height="76" rx="3" fill="#212121"/>
+        <rect x="360" y="122" width="115" height="70" rx="3" fill="#212121"/>
+        <rect x="500" y="128" width="86" height="76" rx="3" fill="#212121"/>
+        <rect x="14" y="248" width="98" height="78" rx="3" fill="#212121"/>
+        <rect x="130" y="238" width="86" height="88" rx="3" fill="#212121"/>
+        <rect x="238" y="248" width="112" height="74" rx="3" fill="#212121"/>
+        <rect x="378" y="240" width="86" height="82" rx="3" fill="#212121"/>
+        <rect x="490" y="246" width="106" height="78" rx="3" fill="#212121"/>
+        <rect x="18" y="372" width="115" height="68" rx="3" fill="#212121"/>
+        <rect x="154" y="378" width="92" height="64" rx="3" fill="#212121"/>
+        <rect x="268" y="370" width="112" height="72" rx="3" fill="#212121"/>
+        <rect x="404" y="374" width="84" height="66" rx="3" fill="#212121"/>
+        <rect x="22" y="490" width="92" height="60" rx="3" fill="#212121"/>
+        <rect x="134" y="484" width="120" height="70" rx="3" fill="#212121"/>
+        <rect x="278" y="490" width="102" height="64" rx="3" fill="#212121"/>
+        <rect x="406" y="488" width="116" height="60" rx="3" fill="#212121"/>
+        <rect x="22" y="600" width="130" height="55" rx="3" fill="#212121"/>
+        <rect x="170" y="606" width="96" height="50" rx="3" fill="#212121"/>
+        <rect x="288" y="600" width="124" height="55" rx="3" fill="#212121"/>
+        <line x1="0" y1="110" x2="700" y2="110" stroke="#252525" stroke-width="10"/>
+        <line x1="0" y1="228" x2="700" y2="228" stroke="#252525" stroke-width="13"/>
+        <line x1="0" y1="362" x2="700" y2="362" stroke="#252525" stroke-width="9"/>
+        <line x1="0" y1="480" x2="700" y2="480" stroke="#252525" stroke-width="7"/>
+        <line x1="0" y1="590" x2="700" y2="590" stroke="#252525" stroke-width="6"/>
+        <line x1="120" y1="0" x2="120" y2="690" stroke="#252525" stroke-width="10"/>
+        <line x1="238" y1="0" x2="238" y2="690" stroke="#252525" stroke-width="13"/>
+        <line x1="370" y1="0" x2="370" y2="690" stroke="#252525" stroke-width="9"/>
+        <line x1="488" y1="0" x2="488" y2="690" stroke="#252525" stroke-width="7"/>
+        <ellipse cx="350" cy="340" rx="44" ry="26" fill="#182018"/>
+      </svg>
+
+      <div class="radius"></div>
+
+      <div class="pin" style="left:41%;top:46%;"><div class="plabel g">Léon Blum ⚽</div><div class="pstem g"></div><div class="pdot g"></div></div>
+      <div class="pin" style="left:62%;top:30%;"><div class="plabel">Jean Moulin 🏀</div><div class="pstem"></div><div class="pdot"></div></div>
+      <div class="pin" style="left:72%;top:58%;"><div class="plabel e">Street basket 🎯</div><div class="pstem e"></div><div class="pdot e"></div></div>
+      <div class="pin" style="left:22%;top:68%;"><div class="plabel">Running 🏃</div><div class="pstem"></div><div class="pdot"></div></div>
+      <div class="pin" style="left:80%;top:20%;"><div class="plabel s">Adidas Store 🏷️</div><div class="pstem s"></div><div class="pdot s"></div></div>
+
+      <div class="me"><div class="me-inner"></div></div>
+
+      <div class="wb">
+        <div class="wdot"></div>
+        <span style="color:#666;font-size:11px;"><b style="color:#d05050">3 workouts</b> en cours près de vous</span>
+      </div>
+
+      <div class="map-ctrl">
+        <div class="mc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+        <div class="mc">+</div>
+        <div class="mc">−</div>
+      </div>
+
+      <!-- SLOT UNIQUE bas de carte -->
+      <div class="bottom-slot">
+
+        <div class="spot-popup" id="spotPopup">
+          <div class="pop-ico">⚽</div>
+          <div style="flex:1;">
+            <div class="pop-title">Stade Léon Blum</div>
+            <div class="pop-sub">Gratuit · 0.4 km · Disponible maintenant</div>
+            <div class="pop-stats"><div>Note <b>4.2</b></div><div>Joueurs <b>24</b></div><div>Event <b>1</b></div></div>
+            <div class="pop-actions">
+              <button class="btn g" style="font-size:10px;">+ Événement</button>
+              <button class="btn" style="font-size:10px;">Voir la fiche</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast" id="toastEl">
+          <div class="tbar" id="tbar"></div>
+          <div class="tico" id="tIco"></div>
+          <div class="tbody">
+            <div class="ttag" id="tTag"></div>
+            <div class="ttitle" id="tTitle"></div>
+            <div class="tsub" id="tSub"></div>
+          </div>
+          <div class="tclose" onclick="dismissNow()">✕</div>
+        </div>
+
+      </div>
+
+      <!-- CHAT -->
+      <div class="chat-ov" id="chatOv">
+        <div class="cpanel">
+          <div class="chead">
+            <div class="odot"></div>
+            <div><div class="czone">Canal · Paris 11e</div><div class="czone-sub">28 personnes dans 10 km</div></div>
+            <div class="cclose" onclick="toggleChat()">✕</div>
+          </div>
+          <div class="ctemp">⏱ Canal temporaire · expire dans 18h</div>
+          <div class="cmsgs">
+            <div class="cm"><div class="cmav" style="background:#12122a;color:#7b8fff;">K</div><div><div class="cmn">Kevin · 0.4 km</div><div class="cmt">Dispo ce soir au <span class="cmention">⚽ Léon Blum</span> ?</div></div></div>
+            <div class="cm"><div class="cmav" style="background:#142014;color:#5a9e6a;">S</div><div><div class="cmn">Sara · 1.2 km</div><div class="cmt">Moi ! Je ramène 2 amis 🙌</div></div></div>
+            <div class="cm" style="flex-direction:row-reverse;"><div class="cmav" style="background:#C9A84C18;color:#C9A84C;">M</div><div style="text-align:right;"><div class="cmn">Vous</div><div class="cmt" style="background:#C9A84C12;border-color:#C9A84C22;color:#dcc878;border-radius:7px 2px 7px 7px;">Je suis partant 🔥</div></div></div>
+            <div class="cm"><div class="cmav" style="background:#12122a;color:#7b8fff;">K</div><div><div class="cmn">Kevin · 0.4 km</div><div class="cmt">Event créé → <span class="cmention">🎯 5v5 Sam 15h</span></div></div></div>
+          </div>
+          <div class="cinrow">
+            <input class="cin" type="text" placeholder="Message dans le canal..."/>
+            <button class="csend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TABS ──
+function switchTab(name, el) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  ['spots','events','workout'].forEach(id => {
+    const t = document.getElementById('tab-'+id);
+    t.style.display = 'none';
+  });
+  const target = document.getElementById('tab-'+name);
+  target.style.display = 'flex';
+  target.style.flexDirection = 'column';
+}
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', function(){
+  document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+  this.classList.add('on');
+}));
+document.querySelectorAll('.card').forEach(c => c.addEventListener('click', function(){
+  document.querySelectorAll('.card').forEach(x => x.classList.remove('on'));
+  this.classList.add('on');
+}));
+
+// ── CHAT ──
+function toggleChat() {
+  document.getElementById('chatOv').classList.toggle('open');
+  document.getElementById('chatBtn').classList.toggle('active');
+}
+
+// ── TOAST AUTOMATIQUE ──
+// Séquence : pub (6s) → retour popup → badge (5s) → retour popup → pub (6s) → event auto (7s) → ...
+// Cycle total ~45s, discret et constant
+
+const QUEUE = [
+  { delay: 8000,  dur: 6000, type:'ad',    ico:'🏃',  bg:'background:#0c1825;', tag:'Sponsorisé',           title:'Adidas Running Club',         sub:'Session gratuite ce samedi · Paris 11e' },
+  { delay: 22000, dur: 5000, type:'badge', ico:'🏋️', bg:'background:#122012;', tag:'Badge débloqué',        title:'Muscu Intermédiaire 🎖️',     sub:'Ajoute une session dos pour passer Avancé' },
+  { delay: 36000, dur: 7000, type:'event', ico:'🤖',  bg:'background:#0d0d20;', tag:'Événement automatique', title:'Défi AMRAP lancé près de toi', sub:'4 sportifs actifs à Léon Blum · Rejoins !' },
+  { delay: 52000, dur: 6000, type:'ad',    ico:'🎾',  bg:'background:#0a1a0a;', tag:'Sponsorisé',           title:'Decathlon Sport',              sub:'Raquettes à -30% cette semaine · Voir' },
+];
+
+let activeTimer = null;
+
+function runQueue(index) {
+  const item = QUEUE[index % QUEUE.length];
+  const nextIndex = (index + 1) % QUEUE.length;
+
+  // Délai avant ce toast (relatif au dernier dismiss)
+  const pause = index === 0 ? item.delay : 12000; // 12s entre chaque après le premier cycle
+
+  activeTimer = setTimeout(() => {
+    showToast(item, () => {
+      // Callback après dismiss : lancer le suivant
+      runQueue(nextIndex);
+    });
+  }, pause);
+}
+
+function showToast(cfg, onDone) {
+  const popup = document.getElementById('spotPopup');
+  const toast = document.getElementById('toastEl');
+  const tbar  = document.getElementById('tbar');
+
+  // Remplir contenu
+  document.getElementById('tIco').style.cssText  = cfg.bg;
+  document.getElementById('tIco').textContent    = cfg.ico;
+  document.getElementById('tTag').textContent    = cfg.tag;
+  document.getElementById('tTitle').textContent  = cfg.title;
+  document.getElementById('tSub').textContent    = cfg.sub;
+
+  // Reset classe toast
+  toast.className = 'toast ' + cfg.type;
+
+  // Step 1 — popup sort
+  popup.classList.add('out');
+
+  setTimeout(() => {
+    // Step 2 — toast entre
+    tbar.style.animation = 'none';
+    tbar.offsetHeight; // reflow
+    tbar.style.animationDuration = (cfg.dur / 1000) + 's';
+    tbar.style.animation = '';
+
+    toast.classList.add('show');
+
+    // Step 3 — après durée, auto-dismiss
+    activeTimer = setTimeout(() => {
+      dismissToast(onDone);
+    }, cfg.dur);
+
+  }, 180);
+
+  // Stocker le callback
+  toast._onDone = onDone;
+}
+
+function dismissToast(cb) {
+  const popup = document.getElementById('spotPopup');
+  const toast = document.getElementById('toastEl');
+  clearTimeout(activeTimer);
+
+  toast.classList.remove('show');
+  toast.classList.add('hide');
+
+  setTimeout(() => {
+    toast.className = 'toast';
+    popup.classList.remove('out');
+    if (cb) cb();
+    else if (toast._onDone) { const fn = toast._onDone; toast._onDone = null; fn(); }
+  }, 240);
+}
+
+// Bouton ✕ du toast
+function dismissNow() {
+  dismissToast(null);
+  // Relancer le cycle après un moment
+  setTimeout(() => runQueue(0), 15000);
+}
+
+// Init tabs
+document.getElementById('tab-spots').style.display = 'flex';
+document.getElementById('tab-spots').style.flexDirection = 'column';
+document.getElementById('tab-events').style.display = 'none';
+document.getElementById('tab-workout').style.display = 'none';
+
+// Démarrer le cycle automatique
+runQueue(0);
+</script>
+</body>
+</html>
