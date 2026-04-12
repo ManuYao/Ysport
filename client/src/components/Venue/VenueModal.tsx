@@ -364,7 +364,7 @@ export default function VenueModal({ spot, events, userCoords, onClose }: Props)
             {reviews.length === 0 ? (
               <div style={{ fontSize: 11, color: colors.text4, paddingBottom: 10 }}>Aucun avis encore — sois le premier !</div>
             ) : reviews.map(r => (
-              <div key={r._id} style={{ background: colors.bg3, border: `0.5px solid ${colors.border3}`, borderRadius: 10, padding: '11px 12px', marginBottom: 7 }}>
+              <div key={r.id} style={{ background: colors.bg3, border: `0.5px solid ${colors.border3}`, borderRadius: 10, padding: '11px 12px', marginBottom: 7 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
                   <div style={{ width: 30, height: 30, borderRadius: '50%', background: colors.bg4, color: colors.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{r.userInitial || '?'}</div>
                   <div style={{ flex: 1 }}>
