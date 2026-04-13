@@ -139,14 +139,11 @@ export async function register(
   sports: string[] = [],
   location?: { lat: number; lng: number },
 ) {
-  const res = await fetch(`${BASE}/api/auth/register`, {
+  return apiFetch<{ token: string; user: ApiUser }>('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name, sports, location }),
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
-  return data as { token: string; user: ApiUser }
 }
 
 export async function login(email: string, password: string) {
@@ -174,7 +171,9 @@ export async function logout() {
 // ─── Spots — Supabase (toute la France, tables par sport) ────────────────────
 export async function fetchSpotsFromGouv(
   lat: number, lng: number, radius = 5,
-  sport?: string | string[] | null, signal?: AbortSignal,
+  sport?: string | string[] | null,
+  signal?: AbortSignal,
+  limit = 100,
 ): Promise<Spot[]> {
   const latDelta = radius / 111
   const lngDelta = radius / (111 * Math.cos(lat * Math.PI / 180))
@@ -198,7 +197,7 @@ export async function fetchSpotsFromGouv(
         .select('*')
         .gte('latitude', lat - latDelta).lte('latitude', lat + latDelta)
         .gte('longitude', lng - lngDelta).lte('longitude', lng + lngDelta)
-        .limit(100)
+        .limit(limit)
 
       const { data, error } = await (signal ? q.abortSignal(signal) : q)
 
