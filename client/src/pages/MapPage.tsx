@@ -105,8 +105,9 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
     store.setStoreLoading(true)
 
     const activeFilters = store.sportFilters.length > 0 ? store.sportFilters : undefined
+    const spotLimit     = isMobile ? 30 : 100
 
-    fetchSpotsFromGouv(mapCenter.lat, mapCenter.lng, mapCenter.radius, activeFilters, controller.signal)
+    fetchSpotsFromGouv(mapCenter.lat, mapCenter.lng, mapCenter.radius, activeFilters, controller.signal, spotLimit)
       .then(spots => {
         clearTimeout(timeout)
         if (!controller.signal.aborted) store.loadSpots(spots)
