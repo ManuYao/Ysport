@@ -39,13 +39,13 @@ export default function GlobeLoader({ visible }: GlobeLoaderProps) {
             position:       'absolute',
             inset:          0,
             zIndex:         900,
-            background:     'rgba(8,8,8,0.96)',
+            background:     '#080808',
             display:        'flex',
             flexDirection:  'column',
             alignItems:     'center',
             justifyContent: 'center',
             gap:            40,
-            backdropFilter: 'blur(6px)',
+            // backdropFilter retiré — combiné avec canvas WebGL = crash iOS Safari
           }}
         >
           {/* Logo */}

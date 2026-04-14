@@ -235,7 +235,10 @@ export async function fetchSpotsFromGouv(
       const { data, error } = await (signal ? q.abortSignal(signal) : q)
 
       if (error) {
-        console.warn(`Supabase [${tableName}]:`, error.message)
+        // AbortError = annulation volontaire (cleanup React) → pas de log
+        if (!error.message.toLowerCase().includes('abort')) {
+          console.warn(`Supabase [${tableName}]:`, error.message)
+        }
         return [] as Spot[]
       }
 

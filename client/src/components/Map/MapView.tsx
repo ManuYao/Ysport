@@ -147,6 +147,7 @@ export default function MapView({
   const selectedMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const spotMarkersRef    = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const zoomTimerRef      = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const projectionRef     = useRef<'globe' | 'mercator'>('globe')
   const centeredRef       = useRef(false)
   const firstLoadRef      = useRef(true)   // Pour déclencher le FlyTo une seule fois
   const onBoundsChangeRef = useRef(onBoundsChange)
@@ -274,7 +275,7 @@ export default function MapView({
           'circle-color':        ORANGE,
           'circle-radius':       7,
           'circle-stroke-width': 2,
-          'circle-stroke-color': `${ORANGE}66`,
+          'circle-stroke-color': 'rgba(255,107,43,0.4)',
           'circle-opacity':      1,
         },
       })
@@ -312,8 +313,13 @@ export default function MapView({
         // Debounce : évite des rafales de re-renders React sur mobile (pinch-zoom rapide)
         clearTimeout(zoomTimerRef.current)
         zoomTimerRef.current = setTimeout(() => setMapZoom(z), 150)
-        // Bascule globe (intro) ↔ mercator (navigation spots) selon le zoom
-        m.setProjection(z >= MERCATOR_ZOOM_THRESHOLD ? ('mercator' as never) : ('globe' as never))
+        // Bascule globe ↔ mercator uniquement quand le seuil est franchi
+        // (appeler setProjection à chaque event = recalcul shaders WebGL → crash mobile)
+        const newProj: 'globe' | 'mercator' = z >= MERCATOR_ZOOM_THRESHOLD ? 'mercator' : 'globe'
+        if (newProj !== projectionRef.current) {
+          projectionRef.current = newProj
+          m.setProjection(newProj as never)
+        }
         emitBounds()
       })
       setMapReady(true)
@@ -321,8 +327,12 @@ export default function MapView({
 
     map.current = m
     return () => {
+      clearTimeout(zoomTimerRef.current)
       userMarkerRef.current?.remove()
       selectedMarkerRef.current?.remove()
+      // Libère tous les marqueurs HTML spots (évite l'accumulation mémoire mobile)
+      spotMarkersRef.current.forEach(marker => marker.remove())
+      spotMarkersRef.current.clear()
       m.remove()
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
