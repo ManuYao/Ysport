@@ -64,6 +64,14 @@ export default function OnboardingPage({ onDone, onGoToLanding }: Props) {
     go(1)
   }
 
+  // Timeout pour éviter un spinner infini si Supabase rate-limite ou ne répond pas
+  function withTimeout<T>(promise: Promise<T>, ms: number, msg: string): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error(msg)), ms)),
+    ])
+  }
+
   // ── Inscription réelle ──────────────────────────────────
   async function handleRegister() {
     if (didSubmit.current) return
@@ -71,7 +79,11 @@ export default function OnboardingPage({ onDone, onGoToLanding }: Props) {
     setAuthLoading(true)
     setAuthError(null)
     try {
-      await auth.register(email, password, name, selected, geoCoords ?? undefined)
+      await withTimeout(
+        auth.register(email, password, name, selected, geoCoords ?? undefined),
+        12_000,
+        'Serveur trop long à répondre. Réessaie dans quelques secondes.',
+      )
       localStorage.setItem(SPORTS_KEY, JSON.stringify(selected))
       onDone()
     } catch (err) {
@@ -89,7 +101,11 @@ export default function OnboardingPage({ onDone, onGoToLanding }: Props) {
     setAuthLoading(true)
     setAuthError(null)
     try {
-      await auth.login(loginEmail, loginPassword)
+      await withTimeout(
+        auth.login(loginEmail, loginPassword),
+        12_000,
+        'Serveur trop long à répondre. Réessaie dans quelques secondes.',
+      )
       onDone()
     } catch (err) {
       setAuthError(err instanceof Error ? err.message : 'Email ou mot de passe incorrect.')
@@ -149,11 +165,11 @@ export default function OnboardingPage({ onDone, onGoToLanding }: Props) {
           )}
           {step === 4 && (
             <ScreenReady
-              key="s4" dir={dir} name={name} selected={selected}
+              key="s4" dir={dir} name={name}
               geoCoords={geoCoords}
               loading={authLoading} error={authError}
               onDone={handleRegister}
-              onToggle={toggleSport}
+              onBack={() => go(3)}
             />
           )}
           {step === 5 && (
@@ -427,7 +443,7 @@ function ScreenSports({ dir, step, totalSteps, selected, onToggle, onBack, onNex
 // ══════════════════════════════════════════════════════════
 //  S4 — PRÊT (+ appel register)
 // ══════════════════════════════════════════════════════════
-function ScreenReady({ dir, name, selected, geoCoords, loading, error, onDone, onToggle }: { dir: number; name: string; selected: SportId[]; geoCoords?: { lat: number; lng: number } | null; loading: boolean; error: string | null; onDone: () => void; onToggle: (id: SportId) => void }) {
+function ScreenReady({ dir, name, geoCoords, loading, error, onDone, onBack }: { dir: number; name: string; geoCoords?: { lat: number; lng: number } | null; loading: boolean; error: string | null; onDone: () => void; onBack: () => void }) {
   const [nearbyCount, setNearbyCount] = useState<number | null>(null)
 
   useEffect(() => {
@@ -453,7 +469,14 @@ function ScreenReady({ dir, name, selected, geoCoords, loading, error, onDone, o
       <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', bottom: 60, left: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(circle,#6b7fff0a 0%,transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(#ffffff03 1px,transparent 1px),linear-gradient(90deg,#ffffff03 1px,transparent 1px)', backgroundSize: '36px 36px', maskImage: 'radial-gradient(ellipse 80% 70% at 50% 20%,black 0%,transparent 65%)', pointerEvents: 'none' }} />
 
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '44px 28px 36px', textAlign: 'center' }}>
+      {/* Bouton retour */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '18px 22px 0', position: 'relative', zIndex: 1 }}>
+        <button onClick={onBack} style={{ width: 32, height: 32, borderRadius: 9, background: '#161616', border: '0.5px solid #252525', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#777', flexShrink: 0 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '20px 28px 36px', textAlign: 'center' }}>
         <div style={{ position: 'relative', width: 96, height: 96, margin: '0 auto 28px' }}>
           <div style={{ position: 'absolute', inset: 0, borderRadius: 28, background: 'conic-gradient(transparent 0deg,#C9A84C30 90deg,transparent 180deg,#C9A84C18 270deg,transparent 360deg)', animation: 'ysport-rotate 6s linear infinite' }} />
           <div style={{ position: 'absolute', inset: 5, borderRadius: 22, background: 'linear-gradient(135deg,#1c1607,#0e0c04)', border: `0.5px solid ${colors.goldBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, boxShadow: '0 0 40px #C9A84C20, inset 0 1px 0 #C9A84C15' }}>
@@ -466,31 +489,6 @@ function ScreenReady({ dir, name, selected, geoCoords, loading, error, onDone, o
         </div>
         <div style={{ fontSize: 14, color: colors.text2, lineHeight: 1.6, marginBottom: 24, fontWeight: 300 }}>
           {name ? `Bienvenue ${name} !` : 'Ton profil est créé.'}<br />{spotLabel} t'attendent.
-        </div>
-
-        {/* Grille sports interactive — dernière chance de modifier avant inscription */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, width: '100%', marginBottom: 20, maxHeight: 220, overflowY: 'auto', scrollbarWidth: 'none' }}>
-          {ALL_SPORTS.map(sport => {
-            const isSel = selected.includes(sport.id)
-            return (
-              <div key={sport.id} onClick={() => onToggle(sport.id)} style={{
-                background: isSel ? '#120f03' : '#161616',
-                border: `0.5px solid ${isSel ? colors.gold : '#252525'}`,
-                borderRadius: 14, padding: '10px 10px', cursor: 'pointer',
-                display: 'flex', flexDirection: 'column', gap: 4,
-                position: 'relative', overflow: 'hidden', transition: 'all 0.18s',
-                boxShadow: isSel ? `0 0 0 1px #C9A84C18, inset 0 1px 0 #C9A84C10` : 'none',
-              }}>
-                <div style={{ position: 'absolute', top: 8, right: 8, width: 16, height: 16, borderRadius: '50%',
-                  background: isSel ? colors.gold : '#1c1c1c', border: `0.5px solid ${isSel ? colors.gold : '#252525'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 8, color: isSel ? '#111' : 'transparent', fontWeight: 700, transition: 'all 0.15s' }}>✓</div>
-                <div style={{ fontSize: 22 }}>{sport.icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 500, color: isSel ? '#fff' : '#ccc', transition: 'color 0.15s' }}>{sport.name}</div>
-                <div style={{ fontSize: 8, color: '#3a3a3a' }}>{sport.sub}</div>
-              </div>
-            )
-          })}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 28, width: '100%' }}>

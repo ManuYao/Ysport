@@ -23,9 +23,10 @@ const SPORT_META: Record<string, { icon: string; color: string; tip: string }> =
 }
 
 export default function ProfileModal({ open, onClose }: Props) {
-  const { user: authUser } = useAuth()
+  const { user: authUser, logout } = useAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]       = useState(false)
+  const [profileError, setProfileError] = useState(false)
   const [isEditing, setIsEditing]   = useState(false)
   const [editName, setEditName]     = useState('')
   const [editHandle, setEditHandle] = useState('')
@@ -33,9 +34,10 @@ export default function ProfileModal({ open, onClose }: Props) {
   useEffect(() => {
     if (!open || !authUser) return
     setLoading(true)
+    setProfileError(false)
     fetchProfile()
-      .then(setProfile)
-      .catch(() => setProfile(null))
+      .then(data => { setProfile(data); setProfileError(false) })
+      .catch(() => setProfileError(true))
       .finally(() => setLoading(false))
   }, [open, authUser])
 
@@ -117,10 +119,17 @@ export default function ProfileModal({ open, onClose }: Props) {
               <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 7, border: `0.5px solid ${colors.border3}`, background: colors.bg3, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.text2 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
               </button>
-              <div style={{ fontFamily: fonts.title, fontSize: 15, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontFamily: fonts.title, fontSize: 15, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
                 <span style={{ width: 5, height: 5, background: colors.gold, borderRadius: '50%', display: 'inline-block' }} />
                 YSport
               </div>
+              <button
+                onClick={() => { logout(); onClose() }}
+                style={{ height: 28, padding: '0 10px', borderRadius: 7, border: `0.5px solid ${colors.border3}`, background: colors.bg3, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#d05050', fontSize: 11, fontFamily: fonts.body, flexShrink: 0 }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Quitter
+              </button>
             </div>
 
             {/* Loading */}
@@ -134,6 +143,13 @@ export default function ProfileModal({ open, onClose }: Props) {
             {/* Contenu */}
             {!loading && (
               <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: `${colors.border2} transparent` }}>
+
+                {/* Bannière erreur profil */}
+                {profileError && (
+                  <div style={{ margin: '12px 14px 0', padding: '9px 13px', borderRadius: 10, background: '#d0505018', border: '0.5px solid #d0505040', fontSize: 12, color: '#d05050', lineHeight: 1.5 }}>
+                    ⚠️ Profil non chargé — données partielles affichées. Vérifie ta connexion.
+                  </div>
+                )}
 
                 {/* HERO */}
                 <div style={{ position: 'relative', background: 'linear-gradient(160deg,#1c1809 0%,#0e0e0e 60%)', padding: '24px 16px 0', borderBottom: `0.5px solid #1a1a1a`, overflow: 'hidden' }}>

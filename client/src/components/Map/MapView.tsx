@@ -146,6 +146,7 @@ export default function MapView({
   const userMarkerRef     = useRef<mapboxgl.Marker | null>(null)
   const selectedMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const spotMarkersRef    = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const zoomTimerRef      = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const centeredRef       = useRef(false)
   const firstLoadRef      = useRef(true)   // Pour déclencher le FlyTo une seule fois
   const onBoundsChangeRef = useRef(onBoundsChange)
@@ -308,7 +309,9 @@ export default function MapView({
       m.on('moveend', emitBounds)
       m.on('zoomend', () => {
         const z = m.getZoom()
-        setMapZoom(z)
+        // Debounce : évite des rafales de re-renders React sur mobile (pinch-zoom rapide)
+        clearTimeout(zoomTimerRef.current)
+        zoomTimerRef.current = setTimeout(() => setMapZoom(z), 150)
         // Bascule globe (intro) ↔ mercator (navigation spots) selon le zoom
         m.setProjection(z >= MERCATOR_ZOOM_THRESHOLD ? ('mercator' as never) : ('globe' as never))
         emitBounds()
@@ -473,7 +476,7 @@ export default function MapView({
         .addTo(m)
       spotMarkersRef.current.set(spot.id, marker)
     })
-  }, [spots, sportFilters, selectedSpot, mapReady, mapZoom, onSelectSpot])
+  }, [spots, sportFilters, selectedSpot, mapReady, mapZoom]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Spot sélectionné : dot orange + bulle nom ────────────
   useEffect(() => {

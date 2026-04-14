@@ -13,11 +13,11 @@ function AppInner() {
   const [screen, setScreen] = useState<Screen>('landing')
   const { user, loading: authLoading } = useAuth()
 
-  // Redirection automatique vers l'app quand l'utilisateur se connecte
+  // Redirection automatique : login → app, logout → landing
   useEffect(() => {
-    if (!authLoading && user && screen !== 'app') {
-      setScreen('app')
-    }
+    if (authLoading) return
+    if (user && screen !== 'app') setScreen('app')
+    else if (!user && screen === 'app') setScreen('landing')
   }, [user?.id, authLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Accès direct à la map — anonyme ou connecté

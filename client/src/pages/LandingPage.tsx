@@ -62,7 +62,12 @@ export default function LandingPage({ onStart, onSignup, onGoToApp }: LandingPag
     setLoginError(null)
     setLoginLoading(true)
     try {
-      await login(loginEmail, loginPassword)
+      await Promise.race([
+        login(loginEmail, loginPassword),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Serveur trop long à répondre. Réessaie dans quelques secondes.')), 12_000)
+        ),
+      ])
       setShowLogin(false)
       // App.tsx détecte user non-null et bascule vers 'app' automatiquement
     } catch (err: unknown) {
@@ -572,7 +577,7 @@ export default function LandingPage({ onStart, onSignup, onGoToApp }: LandingPag
               <div style={{ textAlign: 'center', fontSize: 12, color: '#444', marginTop: 2 }}>
                 Pas encore de compte ?{' '}
                 <span
-                  onClick={() => { setShowLogin(false); onStart() }}
+                  onClick={() => { setShowLogin(false); (onSignup ?? onStart)() }}
                   style={{ color: colors.gold, cursor: 'pointer', fontWeight: 500 }}
                 >
                   Créer un compte

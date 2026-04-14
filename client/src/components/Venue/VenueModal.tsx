@@ -41,7 +41,8 @@ export default function VenueModal({ spot, events, userCoords, onClose }: Props)
   const [slideIdx,  setSlideIdx]  = useState(0)
   const [geoSecs,   setGeoSecs]   = useState(80 * 60)
   const [mapsOpen,  setMapsOpen]  = useState(false)
-  const [reviews,   setReviews]   = useState<Review[]>([])
+  const [reviews,     setReviews]     = useState<Review[]>([])
+  const [reviewsError, setReviewsError] = useState(false)
   const autoRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Distance réelle utilisateur ↔ lieu
@@ -59,10 +60,13 @@ export default function VenueModal({ spot, events, userCoords, onClose }: Props)
     setGeoSecs(80 * 60)
     setMapsOpen(false)
     setReviews([])
+    setReviewsError(false)
     if (autoRef.current) clearInterval(autoRef.current)
     autoRef.current = setInterval(() => setSlideIdx(i => (i + 1) % slides.length), 4500)
     // Charger les avis depuis l'API
-    fetchReviews(spot.id).then(setReviews).catch(() => setReviews([]))
+    fetchReviews(spot.id)
+      .then(data => { setReviews(data); setReviewsError(false) })
+      .catch(() => setReviewsError(true))
     return () => { if (autoRef.current) clearInterval(autoRef.current) }
   }, [spot?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -361,7 +365,11 @@ export default function VenueModal({ spot, events, userCoords, onClose }: Props)
               Laisser un avis sur ce lieu...
             </div>
 
-            {reviews.length === 0 ? (
+            {reviewsError ? (
+              <div style={{ fontSize: 11, color: '#d05050', background: '#d0505015', borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
+                Impossible de charger les avis — service temporairement indisponible.
+              </div>
+            ) : reviews.length === 0 ? (
               <div style={{ fontSize: 11, color: colors.text4, paddingBottom: 10 }}>Aucun avis encore — sois le premier !</div>
             ) : reviews.map(r => (
               <div key={r.id} style={{ background: colors.bg3, border: `0.5px solid ${colors.border3}`, borderRadius: 10, padding: '11px 12px', marginBottom: 7 }}>

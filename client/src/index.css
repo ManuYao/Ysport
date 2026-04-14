@@ -24,6 +24,7 @@ body {
 
 #root {
   height: 100%;
+  background: #080808;
 }
 
 /* ── Scale UI sur grands écrans ── */

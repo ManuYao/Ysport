@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { colors } from '@/theme/theme'
 import { useMapStore } from '@/store/useMapStore'
 import { useAuth } from '@/contexts/AuthContext'
@@ -20,7 +20,6 @@ import FilterFAB from '@/components/ui/FilterFAB'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Spot, LatLng } from '@/types'
 import type { SnapPoint } from '@/components/ui/BottomSheet'
-import { SPOTS as MOCK_SPOTS } from '@/data/mock'
 
 const FIRST_TOAST_DELAY  = 8000
 const INTER_TOAST_PAUSE  = 12000
@@ -39,6 +38,7 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   const [venueSpot, setVenueSpot]       = useState<Spot | null>(null)
   const [profileOpen, setProfileOpen]   = useState(false)
   const [authPromptOpen, setAuthPromptOpen] = useState(false)
+  const [apiError, setApiError]         = useState<string | null>(null)
   const [cityName, setCityName]         = useState<string | null>(null)
   const [searchCoords, setSearchCoords]       = useState<LatLng | null>(null)
   const [bottomSheetSnap, setBottomSheetSnap] = useState<SnapPoint>('collapsed')
@@ -91,51 +91,43 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handler debounced reçu depuis MapView via onBoundsChange
-  const handleBoundsChange = (lat: number, lng: number, radius: number) => {
+  const handleBoundsChange = useCallback((lat: number, lng: number, radius: number) => {
     clearTimeout(boundsTimerRef.current)
     boundsTimerRef.current = setTimeout(() => setMapCenter({ lat, lng, radius }), 500)
-  }
+  }, [])
 
   // ── Chargement des spots — basé sur la zone visible ──
   useEffect(() => {
     if (!mapCenter) return
     const controller = new AbortController()
-    // Sécurité : si Supabase ne répond pas après 10s, on bascule sur les mocks
+    // cleanedUp distingue "cleanup React" (re-run / démontage) de "timeout API"
+    // Si cleanedUp=true : abort volontaire → on ignore silencieusement
+    // Si cleanedUp=false : abort forcé par le timeout → on charge les mocks
+    let cleanedUp = false
     const timeout = setTimeout(() => controller.abort(), 10_000)
     store.setStoreLoading(true)
 
     const activeFilters = store.sportFilters.length > 0 ? store.sportFilters : undefined
-    const spotLimit     = isMobile ? 3 : 100
+    const spotLimit     = isMobile ? 30 : 100
 
     fetchSpotsFromGouv(mapCenter.lat, mapCenter.lng, mapCenter.radius, activeFilters, controller.signal, spotLimit)
       .then(spots => {
         clearTimeout(timeout)
-        if (!controller.signal.aborted) store.loadSpots(spots)
+        if (!cleanedUp) store.loadSpots(spots)
       })
       .catch(err => {
         clearTimeout(timeout)
-        // Abort intentionnel (cleanup re-run, démontage) → on ne charge pas les mocks
-        if (controller.signal.aborted) return
-        store.setNetworkError('Connexion dégradée — données hors ligne')
-        console.warn('API indisponible, utilisation des données mock:', err instanceof Error ? err.message : String(err))
-        const mockInZone = MOCK_SPOTS.filter(s => {
-          const dist = Math.sqrt(
-            Math.pow((s.coords.lat - mapCenter.lat) * 111, 2) +
-            Math.pow((s.coords.lng - mapCenter.lng) * 111 * Math.cos(mapCenter.lat * Math.PI / 180), 2)
-          )
-          return dist <= mapCenter.radius
-        })
-        const hasFilters = store.sportFilters.length > 0
-        const nearby   = hasFilters ? mockInZone.filter(s => store.sportFilters.some(f => s.sports.includes(f))) : mockInZone
-        const fallback = hasFilters ? MOCK_SPOTS.filter(s => store.sportFilters.some(f => s.sports.includes(f))) : MOCK_SPOTS
-        store.loadSpots(nearby.length > 0 ? nearby : fallback)
+        // Cleanup React → abort volontaire, on ignore silencieusement
+        if (cleanedUp) return
+        console.warn('API indisponible:', err instanceof Error ? err.message : String(err))
+        store.setStoreLoading(false)
+        setApiError('Le service est temporairement indisponible (quota API atteint).\nRéessaie dans quelques minutes.')
       })
 
     return () => {
+      cleanedUp = true
       clearTimeout(timeout)
       controller.abort()
-      // Pas de setStoreLoading(false) ici : le store est local à MapPage et se réinitialise
-      // avec le composant. L'appeler ici créait un flash isLoading=false entre deux re-runs.
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapCenter?.lat, mapCenter?.lng, mapCenter?.radius, store.sportFilters.join(',')])
@@ -183,7 +175,7 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   useEffect(() => {
     fetchEvents()
       .then(events => store.loadEvents(events))
-      .catch(() => { /* events silencieux */ })
+      .catch(() => store.setNetworkError('Événements non chargés — service temporairement indisponible.'))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Toast cycle ──
@@ -191,6 +183,15 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
     const t = setTimeout(() => store.showNextToast(), FIRST_TOAST_DELAY)
     return () => clearTimeout(t)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Popup si chargement > 5s (service lent ou quota atteint) ──
+  useEffect(() => {
+    if (!store.isLoading) return
+    const t = setTimeout(() => {
+      setApiError('Le chargement prend trop de temps.\nContact Admin : Ya0@gmail.com — réessaie dans quelques minutes.')
+    }, 5_000)
+    return () => clearTimeout(t)
+  }, [store.isLoading])
 
   function handleToastComplete() {
     store.dismissToast()
@@ -202,13 +203,13 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
     setTimeout(() => store.showNextToast(), INTER_TOAST_PAUSE)
   }
 
-  function handleSelectSpot(spot: Spot | null) {
+  const handleSelectSpot = useCallback((spot: Spot | null) => {
     store.selectSpot(spot)
     if (isMobile && spot) {
       store.setTab('lieu')
       setVenueSpot(spot)
     }
-  }
+  }, [isMobile, store])
 
   // Infos topbar depuis l'utilisateur authentifié ou fallback
   const userZone    = cityName ?? (geo.coords ? 'Votre position' : (user?.handle ?? 'Paris'))
@@ -427,6 +428,51 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
         onClose={() => setAuthPromptOpen(false)}
         onGoToOnboarding={() => { setAuthPromptOpen(false); onGoToOnboarding?.() }}
       />
+
+      {/* Erreur API — quota Supabase atteint */}
+      {apiError && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2000,
+          background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '0 24px',
+        }}>
+          <div style={{
+            background: '#141414', border: '0.5px solid #2a2a2a',
+            borderRadius: 20, padding: '28px 24px', maxWidth: 340, width: '100%',
+            boxShadow: '0 16px 60px rgba(0,0,0,0.8)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 36 }}>⚡</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 800, color: '#f0f0f0' }}>
+              Service indisponible
+            </div>
+            <div style={{ fontSize: 13, color: '#777', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+              {apiError}
+            </div>
+            <button
+              onClick={() => { setApiError(null); onGoToLanding?.() }}
+              style={{
+                width: '100%', padding: '13px 0', borderRadius: 13, border: 'none',
+                background: 'linear-gradient(135deg,#C9A84C,#E8C96A)',
+                color: '#0a0800', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              Retour à l'accueil
+            </button>
+            <button
+              onClick={() => setApiError(null)}
+              style={{
+                background: 'none', border: 'none', color: '#555',
+                fontSize: 12, cursor: 'pointer', padding: 4,
+              }}
+            >
+              Réessayer quand même
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

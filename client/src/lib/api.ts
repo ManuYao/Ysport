@@ -160,12 +160,40 @@ export async function fetchMe(): Promise<ApiUser | null> {
     const data = await apiFetch<{ user: ApiUser }>('/api/auth/me')
     return data.user
   } catch {
-    return null
+    // Backend indisponible (serveur local éteint, cold-start Render…)
+    // → profil minimal depuis la session Supabase pour que la navigation fonctionne quand même
+    const su = session.user
+    const name = (su.user_metadata?.name as string | undefined)
+      ?? su.email?.split('@')[0]
+      ?? 'Sportif'
+    return {
+      id:              su.id,
+      email:           su.email ?? '',
+      name,
+      handle:          (su.user_metadata?.handle as string | undefined) ?? '',
+      initial:         name[0]?.toUpperCase() ?? 'S',
+      sports:          (su.user_metadata?.sports as string[] | undefined) ?? [],
+      badges:          [],
+      points:          0,
+      level:           'Junior',
+      levelIcon:       '🥉',
+      nextLevelPoints: 1000,
+    }
   }
 }
 
 export async function logout() {
   await supabase.auth.signOut()
+}
+
+// ─── Cache mémoire spots — 1 heure ───────────────────────────────────────────
+const SPOT_CACHE_TTL = 60 * 60 * 1_000 // 1h en ms
+interface CacheEntry { data: Spot[]; expiresAt: number }
+const spotCache = new Map<string, CacheEntry>()
+
+function spotCacheKey(lat: number, lng: number, radius: number, sports: string[]): string {
+  // On arrondit lat/lng à 3 décimales (~111m) pour regrouper les requêtes proches
+  return `${lat.toFixed(3)}_${lng.toFixed(3)}_${radius}_${[...sports].sort().join(',')}`
 }
 
 // ─── Spots — Supabase (toute la France, tables par sport) ────────────────────
@@ -180,6 +208,11 @@ export async function fetchSpotsFromGouv(
 
   // Normalise sport en array, déduplique les tables via Set
   const sportIds = Array.isArray(sport) ? sport : (sport ? [sport] : [])
+
+  // ── Cache 1h ─────────────────────────────────────────────
+  const cacheKey = spotCacheKey(lat, lng, radius, sportIds)
+  const cached = spotCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) return cached.data
   const tables = sportIds.length === 0
     ? ALL_TABLES
     : (() => {
@@ -214,7 +247,12 @@ export async function fetchSpotsFromGouv(
     })
   )
 
-  return results.flat()
+  const spots = results.flat()
+  // Mise en cache uniquement si on a obtenu des résultats (évite de cacher des réponses vides dues au rate-limit)
+  if (spots.length > 0) {
+    spotCache.set(cacheKey, { data: spots, expiresAt: Date.now() + SPOT_CACHE_TTL })
+  }
+  return spots
 }
 
 export async function fetchReviews(spotId: string) {
