@@ -64,8 +64,9 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
       if (raw) fromStorage = JSON.parse(raw) as string[]
     } catch { /* ignore */ }
 
-    const sportsToApply = fromUser.length > 0 ? fromUser : fromStorage
-    if (sportsToApply.length === 0) return
+    // Fallback ultime : Street Workout par défaut si aucune préférence connue
+    // Réduit la charge initiale (1 sport = 1-2 tables Supabase vs 13 toutes disciplines)
+    const sportsToApply = fromUser.length > 0 ? fromUser : fromStorage.length > 0 ? fromStorage : ['street']
 
     sportsPrefiltered.current = true
     // Max 2 filtres simultanés — on prend les 2 premiers
@@ -79,16 +80,18 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
     setMapCenter({ lat: geo.coords.lat, lng: geo.coords.lng, radius: 10 })
   }, [geo.coords?.lat, geo.coords?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Fallback GPS : si pas de position après 8s → Paris par défaut ──
+  // ── Fallback GPS : si pas de position après délai → Paris par défaut ──
+  // Mobile : 4s (évite un long spinner qui laisse l'UI vide et stresse le CPU)
   useEffect(() => {
+    const fallbackDelay = isMobile ? 4_000 : 8_000
     const t = setTimeout(() => {
       if (!gpsInitDone.current) {
         gpsInitDone.current = true
         setMapCenter({ lat: 48.8534, lng: 2.3488, radius: 10 })
       }
-    }, 8_000)
+    }, fallbackDelay)
     return () => clearTimeout(t)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isMobile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handler debounced reçu depuis MapView via onBoundsChange
   const handleBoundsChange = useCallback((lat: number, lng: number, radius: number) => {
@@ -108,7 +111,7 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
     store.setStoreLoading(true)
 
     const activeFilters = store.sportFilters.length > 0 ? store.sportFilters : undefined
-    const spotLimit     = isMobile ? 30 : 100
+    const spotLimit     = isMobile ? 15 : 100   // Mode Éco : 15 spots max sur mobile
 
     fetchSpotsFromGouv(mapCenter.lat, mapCenter.lng, mapCenter.radius, activeFilters, controller.signal, spotLimit)
       .then(spots => {

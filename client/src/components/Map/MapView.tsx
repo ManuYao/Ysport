@@ -148,6 +148,7 @@ export default function MapView({
   const spotMarkersRef    = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const zoomTimerRef      = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const projectionRef     = useRef<'globe' | 'mercator'>('globe')
+  const isMobileRef       = useRef(typeof window !== 'undefined' && (window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent)))
   const centeredRef       = useRef(false)
   const firstLoadRef      = useRef(true)   // Pour déclencher le FlyTo une seule fois
   const onBoundsChangeRef = useRef(onBoundsChange)
@@ -166,15 +167,21 @@ export default function MapView({
     if (!containerRef.current) return
     mapboxgl.accessToken = MAPBOX_TOKEN
 
+    // Mode Éco : détecte mobile au moment de l'init (user-agent + viewport)
+    // Évite le rendu WebGL globe qui sature le CPU mobile dès le premier frame
+    const isMobileDevice = isMobileRef.current
+
     const m = new mapboxgl.Map({
       container:          containerRef.current,
       style:              'mapbox://styles/mapbox/dark-v11',
       center:             DEFAULT_CENTER,
-      zoom:               GLOBE_INIT_ZOOM,      // ← vue planète au démarrage
-      projection:         'globe' as never,     // ← projection globe Mapbox GL v3
+      zoom:               isMobileDevice ? 5 : GLOBE_INIT_ZOOM,   // mobile = pas de vue planète
+      projection:         (isMobileDevice ? 'mercator' : 'globe') as never,  // globe = crash mobile
       attributionControl: false,
       dragRotate:         false,
       pitchWithRotate:    false,
+      fadeDuration:       0,       // supprime le fade des tiles au chargement
+      trackResize:        false,   // évite un recalcul layout inutile
     })
 
     const emitBounds = () => {
@@ -190,7 +197,7 @@ export default function MapView({
       // ── Cercle zone utilisateur ──────────────────────────
       m.addSource('user-zone', {
         type: 'geojson',
-        data: createCircleGeoJSON(DEFAULT_CENTER, ZONE_RADIUS_KM),
+        data: createCircleGeoJSON(DEFAULT_CENTER, ZONE_RADIUS_KM, isMobileDevice ? 32 : 64),
       })
       m.addLayer({
         id: 'user-zone-fill', type: 'fill', source: 'user-zone',
@@ -315,10 +322,13 @@ export default function MapView({
         zoomTimerRef.current = setTimeout(() => setMapZoom(z), 150)
         // Bascule globe ↔ mercator uniquement quand le seuil est franchi
         // (appeler setProjection à chaque event = recalcul shaders WebGL → crash mobile)
-        const newProj: 'globe' | 'mercator' = z >= MERCATOR_ZOOM_THRESHOLD ? 'mercator' : 'globe'
-        if (newProj !== projectionRef.current) {
-          projectionRef.current = newProj
-          m.setProjection(newProj as never)
+        // Sur mobile on reste toujours en mercator — pas de toggle
+        if (!isMobileDevice) {
+          const newProj: 'globe' | 'mercator' = z >= MERCATOR_ZOOM_THRESHOLD ? 'mercator' : 'globe'
+          if (newProj !== projectionRef.current) {
+            projectionRef.current = newProj
+            m.setProjection(newProj as never)
+          }
         }
         emitBounds()
       })
@@ -352,13 +362,15 @@ export default function MapView({
     firstLoadRef.current = false
 
     // ── RÉGLER LE ZOOM ET LA DURÉE DU FLYTO ICI ──────────
+    // Mobile : animation courte pour ne pas saturer le GPU
+    const flyDuration = isMobileRef.current ? 600 : FLYTO_DURATION_MS
     if (userCoords) {
       // Position GPS dispo → voler directement sur l'utilisateur
       centeredRef.current = true
       map.current.flyTo({
         center:    [userCoords.lng, userCoords.lat],
         zoom:      SPOT_LANDING_ZOOM,
-        duration:  FLYTO_DURATION_MS,
+        duration:  flyDuration,
         essential: true,
         easing:    (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
       })
@@ -369,7 +381,7 @@ export default function MapView({
       map.current.flyTo({
         center:    [avgLng, avgLat],
         zoom:      SPOT_LANDING_ZOOM - 2, // zoom un peu plus éloigné que pour un spot précis
-        duration:  FLYTO_DURATION_MS,
+        duration:  flyDuration,
         essential: true,
         easing:    (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
       })
@@ -384,7 +396,7 @@ export default function MapView({
     map.current.flyTo({
       center:    [userCoords.lng, userCoords.lat],
       zoom:      SPOT_LANDING_ZOOM,
-      duration:  FLYTO_DURATION_MS,
+      duration:  isMobileRef.current ? 600 : FLYTO_DURATION_MS,
       essential: true,
       easing:    (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
     })
@@ -395,7 +407,7 @@ export default function MapView({
     if (!map.current || !mapReady || !userCoords) return
     const center: [number, number] = [userCoords.lng, userCoords.lat]
     const src = map.current.getSource('user-zone') as mapboxgl.GeoJSONSource | undefined
-    src?.setData(createCircleGeoJSON(center, ZONE_RADIUS_KM))
+    src?.setData(createCircleGeoJSON(center, ZONE_RADIUS_KM, isMobileRef.current ? 32 : 64))
 
     if (userMarkerRef.current) {
       userMarkerRef.current.setLngLat(center)
@@ -474,7 +486,11 @@ export default function MapView({
       }
     })
 
-    visibleSpots.forEach(spot => {
+    // Cap markers DOM pour éviter la saturation CPU mobile
+    const MAX_HTML_MARKERS = isMobileRef.current ? 15 : 50
+    const cappedSpots = visibleSpots.slice(0, MAX_HTML_MARKERS)
+
+    cappedSpots.forEach(spot => {
       if (spotMarkersRef.current.has(spot.id)) {
         spotMarkersRef.current.get(spot.id)!.setLngLat([spot.coords.lng, spot.coords.lat])
         return

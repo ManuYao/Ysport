@@ -223,32 +223,44 @@ export async function fetchSpotsFromGouv(
         return set.size > 0 ? [...set] : ALL_TABLES
       })()
 
-  const results = await Promise.all(
-    tables.map(async (tableName) => {
-      const q = supabase
-        .from(tableName)
-        .select('*')
-        .gte('latitude', lat - latDelta).lte('latitude', lat + latDelta)
-        .gte('longitude', lng - lngDelta).lte('longitude', lng + lngDelta)
-        .limit(limit)
+  // Mode Éco mobile : requêtes Supabase en batches séquentiels (3 tables à la fois)
+  // Évite le pic CPU réseau de 13 requêtes simultanées qui freeze les mobiles bas de gamme
+  const isMobileEnv = typeof window !== 'undefined' && (window.innerWidth < 768 || /Mobi|Android/i.test(navigator.userAgent))
+  const BATCH_SIZE = isMobileEnv ? 3 : tables.length  // desktop = tout en parallèle
 
-      const { data, error } = await (signal ? q.abortSignal(signal) : q)
+  async function queryTable(tableName: string): Promise<Spot[]> {
+    const q = supabase
+      .from(tableName)
+      .select('*')
+      .gte('latitude', lat - latDelta).lte('latitude', lat + latDelta)
+      .gte('longitude', lng - lngDelta).lte('longitude', lng + lngDelta)
+      .limit(limit)
 
-      if (error) {
-        // AbortError = annulation volontaire (cleanup React) → pas de log
-        if (!error.message.toLowerCase().includes('abort')) {
-          console.warn(`Supabase [${tableName}]:`, error.message)
-        }
-        return [] as Spot[]
+    const { data, error } = await (signal ? q.abortSignal(signal) : q)
+
+    if (error) {
+      if (!error.message.toLowerCase().includes('abort')) {
+        console.warn(`Supabase [${tableName}]:`, error.message)
       }
+      return []
+    }
 
-      const sportId = TABLE_SPORT[tableName] ?? 'street'
-      return (data ?? []).flatMap(r => {
-        const spot = rowToSpot(r, sportId, lat, lng)
-        return spot ? [spot] : []
-      })
+    const sportId = TABLE_SPORT[tableName] ?? 'street'
+    return (data ?? []).flatMap(r => {
+      const spot = rowToSpot(r, sportId, lat, lng)
+      return spot ? [spot] : []
     })
-  )
+  }
+
+  // Découpe les tables en batches et exécute séquentiellement sur mobile
+  const allResults: Spot[][] = []
+  for (let i = 0; i < tables.length; i += BATCH_SIZE) {
+    if (signal?.aborted) break
+    const batch = tables.slice(i, i + BATCH_SIZE)
+    const batchResults = await Promise.all(batch.map(queryTable))
+    allResults.push(...batchResults)
+  }
+  const results = allResults
 
   const spots = results.flat()
   // Mise en cache uniquement si on a obtenu des résultats (évite de cacher des réponses vides dues au rate-limit)
