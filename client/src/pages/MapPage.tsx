@@ -41,7 +41,7 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   const [apiError, setApiError]         = useState<string | null>(null)
   const [cityName, setCityName]         = useState<string | null>(null)
   const [searchCoords, setSearchCoords]       = useState<LatLng | null>(null)
-  const [bottomSheetSnap, setBottomSheetSnap] = useState<SnapPoint>('collapsed')
+  const [bottomSheetSnap, setBottomSheetSnap] = useState<SnapPoint>('half')
 
   // mapCenter = centre + rayon visibles (piloté par GPS puis par moveend de MapView)
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; radius: number } | null>(null)
@@ -49,6 +49,8 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
   const sportsPrefiltered = useRef(false)
   // Garantit que le setMapCenter GPS-first ne se déclenche qu'une seule fois
   const gpsInitDone       = useRef(false)
+  // Trace les filtres précédents pour détecter un changement (vs déplacement carte)
+  const prevFiltersKey    = useRef('')
 
   // ── Pré-filtrage sports depuis l'onboarding (localStorage) ou profil user ──
   useEffect(() => {
@@ -109,6 +111,14 @@ export default function MapPage({ onGoToLanding, onGoToOnboarding }: MapPageProp
     let cleanedUp = false
     const timeout = setTimeout(() => controller.abort(), 10_000)
     store.setStoreLoading(true)
+
+    // Purge immédiate si c'est un changement de filtre (pas un déplacement carte)
+    // → libère les markers DOM/GPU avant que les nouveaux spots arrivent
+    const currentFiltersKey = store.sportFilters.join(',')
+    if (currentFiltersKey !== prevFiltersKey.current) {
+      prevFiltersKey.current = currentFiltersKey
+      store.loadSpots([])
+    }
 
     const activeFilters = store.sportFilters.length > 0 ? store.sportFilters : undefined
     const spotLimit     = isMobile ? 15 : 100   // Mode Éco : 15 spots max sur mobile

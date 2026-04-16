@@ -33,19 +33,13 @@ interface BottomSheetProps {
 }
 
 // ─── Constantes ───────────────────────────────────────────
-const TABS: { id: SidebarTab; label: string; icon: string }[] = [
-  { id: 'spots',   label: 'Spots',   icon: '📍' },
-  { id: 'events',  label: 'Events',  icon: '⚡' },
-  { id: 'workout', label: 'Workout', icon: '🏋️' },
-]
-
 const HANDLE_HEIGHT = 44  // zone de drag en px
 const NAV_HEIGHT    = 56  // MobileNav
 
 // Calcule les valeurs Y (depuis le haut du container) pour chaque snap point
 function getSnapValues(containerH: number) {
   return {
-    collapsed: containerH - 60,
+    collapsed: containerH - 90,      // 90px visibles → poignée accessible
     half:      containerH * 0.6,
     full:      containerH * 0.15,
   }
@@ -85,9 +79,9 @@ export default function BottomSheet({
       Math.abs(cur[1] - current) < Math.abs(acc[1] - current) ? cur : acc
     )
     // Vélocité rapide vers le bas → collapse
-    if (info.velocity.y > 600) { onSnapChange('collapsed'); return }
+    if (info.velocity.y > 250) { onSnapChange('collapsed'); return }
     // Vélocité rapide vers le haut → full
-    if (info.velocity.y < -600) { onSnapChange('full'); return }
+    if (info.velocity.y < -250) { onSnapChange('full'); return }
     onSnapChange(closest)
   }
 
@@ -146,42 +140,6 @@ export default function BottomSheet({
           }} />
         </motion.div>
 
-        {/* ── Onglets ── */}
-        <div style={{
-          display:      'flex',
-          borderBottom: `0.5px solid ${colors.border}`,
-          flexShrink:   0,
-        }}>
-          {TABS.map(tab => {
-            const active = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onSetTab(tab.id)}
-                style={{
-                  flex:         1,
-                  padding:      '10px 0 8px',
-                  background:   'transparent',
-                  border:       'none',
-                  borderBottom: active ? `2px solid ${colors.gold}` : '2px solid transparent',
-                  color:        active ? colors.gold : colors.text2,
-                  fontFamily:   fonts.body,
-                  fontSize:     11,
-                  fontWeight:   active ? 600 : 400,
-                  cursor:       'pointer',
-                  display:      'flex',
-                  flexDirection: 'column',
-                  alignItems:   'center',
-                  gap:          3,
-                }}
-              >
-                <span style={{ fontSize: 14 }}>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
-        </div>
-
         {/* ── Filtres sports (onglet Spots) ── */}
         <AnimatePresence>
           {activeTab === 'spots' && (
@@ -204,30 +162,22 @@ export default function BottomSheet({
                   color: colors.text4, textTransform: 'uppercase', letterSpacing: '0.8px', flex: 1,
                 }}>Sports</span>
                 {sportFilters.length > 0 && (
-                  <>
-                    <span style={{
-                      fontFamily: fonts.body, fontSize: 9, fontWeight: 600,
-                      color: colors.gold, background: colors.goldDim,
-                      border: `0.5px solid ${colors.goldBorder}`,
-                      borderRadius: radius.full, padding: '1px 6px',
-                    }}>{sportFilters.length}/2</span>
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      onClick={onClearFilters}
-                      style={{
-                        padding:    '2px 8px',
-                        background: 'transparent',
-                        border:     `0.5px solid ${colors.border3}`,
-                        borderRadius: radius.full,
-                        color:      colors.text3,
-                        fontFamily: fonts.body,
-                        fontSize:   10,
-                        cursor:     'pointer',
-                      }}
-                    >✕ Tout</motion.button>
-                  </>
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    onClick={onClearFilters}
+                    style={{
+                      padding:    '2px 8px',
+                      background: 'transparent',
+                      border:     `0.5px solid ${colors.border3}`,
+                      borderRadius: radius.full,
+                      color:      colors.text3,
+                      fontFamily: fonts.body,
+                      fontSize:   10,
+                      cursor:     'pointer',
+                    }}
+                  >✕</motion.button>
                 )}
               </div>
               <div style={{

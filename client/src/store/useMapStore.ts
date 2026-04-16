@@ -13,8 +13,8 @@ interface MapState {
   workouts:        ActiveWorkout[]
   selectedSpot:    Spot | null
   searchQuery:     string
-  sportFilters:    SportId[]        // Multi-filtre (max 2)
-  frozenSport:     SportId | null   // Sport qui a déclenché le freeze (3ème clic)
+  sportFilters:    SportId[]        // Single-select
+  frozenSport:     SportId | null   // Conservé pour compat UI (inactif en single-select)
   activeTab:       SidebarTab
   chatOpen:        boolean
   activeToast:     Toast | null
@@ -109,23 +109,10 @@ function reducer(state: MapState, action: Action): MapState {
 
     case 'TOGGLE_SPORT_FILTER': {
       const { sport } = action
-      const current = state.sportFilters
-      const isActive = current.includes(sport)
-
-      if (isActive) {
-        // Toggle off : retirer le filtre
-        const next = current.filter(s => s !== sport)
-        return { ...state, sportFilters: next, filteredSpots: filterSpots(state.spots, state.searchQuery, next) }
-      }
-
-      if (current.length >= 2) {
-        // Max 2 atteint → freeze visuel (ne pas ajouter)
-        return { ...state, frozenSport: sport }
-      }
-
-      // Ajouter le filtre
-      const next = [...current, sport]
-      return { ...state, sportFilters: next, filteredSpots: filterSpots(state.spots, state.searchQuery, next) }
+      // Single-select : clic sur le sport actif → désélection, clic sur autre sport → remplacement
+      const isActive = state.sportFilters.includes(sport)
+      const next: SportId[] = isActive ? [] : [sport]
+      return { ...state, sportFilters: next, frozenSport: null, filteredSpots: filterSpots(state.spots, state.searchQuery, next) }
     }
 
     case 'CLEAR_SPORT_FILTERS':
